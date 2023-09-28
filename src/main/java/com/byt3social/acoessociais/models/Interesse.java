@@ -1,6 +1,7 @@
 package com.byt3social.acoessociais.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -23,6 +24,11 @@ public class Interesse {
     private Usuario usuario;
     @ManyToOne
     @JoinColumn(name = "segmento_id")
-    @JsonBackReference
+    @JsonManagedReference
     private Segmento segmento;
+
+    public Interesse(Segmento segmento, Usuario usuario) {
+        this.usuario = usuario;
+        this.segmento = segmento;
+    }
 }

@@ -1,6 +1,7 @@
 package com.byt3social.acoessociais.models;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.byt3social.acoessociais.dto.SegmentoDTO;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
@@ -8,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Table(name = "segmentos")
@@ -22,10 +24,14 @@ public class Segmento {
     private Integer id;
     private String nome;
     @OneToMany(mappedBy = "segmento")
-    @JsonManagedReference
-    private List<Interesse> interesses;
+    @JsonBackReference
+    private List<Interesse> interesses = new ArrayList<>();
     @OneToMany(mappedBy = "segmento")
-    @JsonManagedReference
+    @JsonBackReference
     @JsonProperty("acoes_voluntariado")
-    private List<AcaoVoluntariado> acoesVoluntariado;
+    private List<AcaoVoluntariado> acoesVoluntariado = new ArrayList<>();
+
+    public Segmento(SegmentoDTO segmentoDTO) {
+        this.nome = segmentoDTO.nome();
+    }
 }

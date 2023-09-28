@@ -1,7 +1,7 @@
 package com.byt3social.acoessociais.enums;
 
 public enum Fase {
-    CRIADO,
+    CRIADA,
     EM_ANDAMENTO,
-    FINALIZADO
+    FINALIZADA
 }

@@ -1,5 +1,7 @@
 package com.byt3social.acoessociais.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
@@ -10,8 +12,10 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.ListIterator;
 
 @Table(name = "usuarios")
 @Entity(name = "Usuario")
@@ -35,12 +39,22 @@ public class Usuario {
     private Date updatedAt;
     @OneToMany(mappedBy = "usuario")
     @JsonManagedReference
-    private List<Interesse> interesses;
+    @JsonIgnore
+    private List<Interesse> interesses = new ArrayList<>();
     @OneToMany(mappedBy = "usuario")
-    @JsonManagedReference
+    @JsonBackReference
     @JsonProperty("acoes_voluntariado")
-    private List<AcaoVoluntariado> acoesVoluntariado;
+    private List<AcaoVoluntariado> acoesVoluntariado = new ArrayList<>();
     @OneToMany(mappedBy = "participante")
     @JsonManagedReference
-    private List<Inscricao> inscricaos;
+    @JsonIgnore
+    private List<Inscricao> inscricaos = new ArrayList<>();
+
+    public void removerInteresse(ListIterator<Interesse> interesse) {
+        interesse.remove();
+    }
+
+    public void adicionarInteresse(Interesse interesse) {
+        interesses.add(interesse);
+    }
 }

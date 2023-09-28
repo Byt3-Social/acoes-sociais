@@ -1,6 +1,6 @@
 package com.byt3social.acoessociais.models;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
@@ -40,6 +40,6 @@ public class Organizacao {
     private Date updatedAt;
     @OneToMany(mappedBy = "organizacao")
     @JsonProperty("acoes_voluntariado")
-    @JsonManagedReference
+    @JsonBackReference
     private List<AcaoVoluntariado> acoesVoluntariado;
 }
