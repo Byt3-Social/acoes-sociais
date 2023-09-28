@@ -47,4 +47,14 @@ public class Inscricao {
     private AcaoVoluntariado acaoVoluntariado;
     @OneToOne(mappedBy = "inscricao")
     private CheckIn checkIn;
+
+    public Inscricao(Usuario participante, AcaoVoluntariado acaoVoluntariado) {
+        this.participante = participante;
+        this.acaoVoluntariado = acaoVoluntariado;
+        this.status = StatusInscricao.CONFIRMADA;
+    }
+
+    public void cancelar() {
+        this.status = StatusInscricao.CANCELADA;
+    }
 }
