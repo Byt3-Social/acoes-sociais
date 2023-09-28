@@ -21,10 +21,8 @@ public class EmailService {
     private JavaMailSender mailSender;
     @Value("classpath:templates/email/inscricao-confirmada.html")
     private Resource resource;
-    @Value("${com.byt3social.app.domain}")
-    private String appDomain;
 
-    public void notificarInscricaoConfirmada(Inscricao inscricao) {
+    public void notificarInscricaoConfirmada(Inscricao inscricao, String QRCode) {
         MimeMessage message = mailSender.createMimeMessage();
 
         Locale locale = new Locale.Builder().setLanguage("pt").setRegion("BR").build();
@@ -42,6 +40,7 @@ public class EmailService {
             htmlTemplate = htmlTemplate.replace("${nome_participante}", inscricao.getParticipante().getNome());
             htmlTemplate = htmlTemplate.replace("${nome_acao_voluntariado}", inscricao.getAcaoVoluntariado().getNomeAcao());
             htmlTemplate = htmlTemplate.replace("${data_acao_voluntariado}", dataAcao);
+            htmlTemplate = htmlTemplate.replace("${inscricao_qrcode}", QRCode);
 
             message.setContent(htmlTemplate, "text/html; charset=utf-8");
 

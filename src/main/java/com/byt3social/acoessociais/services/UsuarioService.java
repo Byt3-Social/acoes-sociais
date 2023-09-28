@@ -3,10 +3,16 @@ package com.byt3social.acoessociais.services;
 import com.byt3social.acoessociais.dto.InteresseDTO;
 import com.byt3social.acoessociais.models.*;
 import com.byt3social.acoessociais.repositories.*;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayOutputStream;
+import java.util.Base64;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -65,12 +71,30 @@ public class UsuarioService {
 
         inscricaoRepository.save(inscricao);
 
-        emailService.notificarInscricaoConfirmada(inscricao);
+        String QRCode = gerarQRCode(inscricao.getId());
+
+        emailService.notificarInscricaoConfirmada(inscricao, QRCode);
     }
 
     @Transactional
     public void cancelarInscricao(Integer inscricaoID) {
         Inscricao inscricao = inscricaoRepository.findById(inscricaoID).get();
         inscricao.cancelar();
+    }
+
+    private String gerarQRCode(Integer inscricaoID) {
+        try {
+            QRCodeWriter barcodeWriter = new QRCodeWriter();
+            BitMatrix bitMatrix =
+                    barcodeWriter.encode(inscricaoID.toString(), BarcodeFormat.QR_CODE, 200, 200);
+
+            ByteArrayOutputStream pngQRCode = new ByteArrayOutputStream();
+            MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngQRCode);
+            byte[] pngData = pngQRCode.toByteArray();
+
+            return Base64.getEncoder().encodeToString(pngData);
+        } catch(Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }
