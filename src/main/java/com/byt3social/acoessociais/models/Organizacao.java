@@ -1,5 +1,7 @@
 package com.byt3social.acoessociais.models;
 
+import com.byt3social.acoessociais.dto.OrganizacaoDTO;
+import com.byt3social.acoessociais.enums.StatusCadastro;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
@@ -27,6 +29,10 @@ public class Organizacao {
     @Column(name = "nome_empresarial")
     @JsonProperty("nome_empresarial")
     private String nomeEmpresarial;
+    @Column(name = "status")
+    @JsonProperty("status_cadastro")
+    @Enumerated(EnumType.STRING)
+    private StatusCadastro statusCadastro;
     @Column(name = "cadastro_id")
     @JsonProperty("cadastro_id")
     private Integer cadastroId;
@@ -42,4 +48,15 @@ public class Organizacao {
     @JsonProperty("acoes_voluntariado")
     @JsonBackReference
     private List<AcaoVoluntariado> acoesVoluntariado;
+
+    public Organizacao(OrganizacaoDTO organizacaoDTO) {
+        this.nomeEmpresarial = organizacaoDTO.nome();
+        this.cnpj = organizacaoDTO.cnpj();
+        this.cadastroId = organizacaoDTO.id();
+        this.statusCadastro = organizacaoDTO.statusCadastro();
+    }
+
+    public void atualizarStatus(OrganizacaoDTO organizacaoDTO) {
+        this.statusCadastro = organizacaoDTO.statusCadastro();
+    }
 }

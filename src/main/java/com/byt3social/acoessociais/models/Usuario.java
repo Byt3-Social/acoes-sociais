@@ -1,5 +1,6 @@
 package com.byt3social.acoessociais.models;
 
+import com.byt3social.acoessociais.dto.UsuarioDTO;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -29,6 +30,9 @@ public class Usuario {
     private Integer id;
     private String nome;
     private String email;
+    @Column(name = "cadastro_id")
+    @JsonProperty("cadastro_id")
+    private Integer cadastroId;
     @CreationTimestamp
     @JsonProperty("created_at")
     @Column(name = "created_at")
@@ -49,6 +53,12 @@ public class Usuario {
     @JsonManagedReference
     @JsonIgnore
     private List<Inscricao> inscricaos = new ArrayList<>();
+
+    public Usuario(UsuarioDTO usuarioDTO) {
+        this.nome = usuarioDTO.nome();
+        this.email = usuarioDTO.email();
+        this.cadastroId = usuarioDTO.id();
+    }
 
     public void removerInteresse(ListIterator<Interesse> interesse) {
         interesse.remove();
