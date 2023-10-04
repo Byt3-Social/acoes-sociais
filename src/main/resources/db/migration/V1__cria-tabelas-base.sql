@@ -70,7 +70,7 @@ CREATE TABLE inscricoes(
     FOREIGN KEY(acao_id) REFERENCES acoes_voluntariado(id)
 );
 
-CREATE TABLE valores(
+CREATE TABLE opcoes_contribuicao(
     id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     valor DECIMAL(10, 2) NULL,
     descricao VARCHAR(255) NULL,
@@ -78,28 +78,27 @@ CREATE TABLE valores(
     FOREIGN KEY(acao_id) REFERENCES acoes_voluntariado(id)
 );
 
-CREATE TABLE doacoes(
+CREATE TABLE doadores(
     id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(255) NULL,
-    cpf VARCHAR(255) NULL,
+    cpf VARCHAR(255) UNIQUE NULL,
     email VARCHAR(255) NULL,
     telefone VARCHAR(255) NULL,
     data_nascimento DATE NULL,
-    acao_id INT UNSIGNED NULL,
-    created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY(acao_id) REFERENCES acoes_voluntariado(id)
+    usuario_id INT UNSIGNED NULL
 );
 
-CREATE TABLE pagamentos(
+CREATE TABLE doacoes(
     id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     codigo VARCHAR(255) NULL,
     metodo VARCHAR(255) NULL,
     link VARCHAR(255) NULL,
     valor VARCHAR(255) NULL,
     status VARCHAR(255) NULL,
-    doacao_id INT UNSIGNED NULL,
+    acao_id INT UNSIGNED NULL,
+    doador_id INT UNSIGNED NULL,
     created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY(doacao_id) REFERENCES doacoes(id)
+    FOREIGN KEY(acao_id) REFERENCES acoes_voluntariado(id),
+    FOREIGN KEY(doador_id) REFERENCES doadores(id)
 );
