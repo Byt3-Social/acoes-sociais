@@ -28,6 +28,9 @@ public class Inscricao {
     private String assinaturaDigital;
     @Enumerated(EnumType.STRING)
     private StatusInscricao status;
+    @Column(name = "usuario_id")
+    @JsonProperty("usuario_id")
+    private Integer participanteId;
     @CreationTimestamp
     @Column(name = "created_at")
     @JsonProperty("created_at")
@@ -37,23 +40,17 @@ public class Inscricao {
     @JsonProperty("updated_at")
     private Date updatedAt;
     @ManyToOne
-    @JoinColumn(name = "usuario_id")
-    @JsonBackReference
-    private Usuario participante;
-    @ManyToOne
     @JoinColumn(name = "acao_id")
     @JsonBackReference
     @JsonProperty("acao_voluntariado")
     private AcaoVoluntariado acaoVoluntariado;
-    @OneToOne(mappedBy = "inscricao")
-    private CheckIn checkIn;
 
-    public Inscricao(Usuario participante, AcaoVoluntariado acaoVoluntariado) {
-        this.participante = participante;
+    public Inscricao(Integer participanteID, AcaoVoluntariado acaoVoluntariado) {
+        this.participanteId = participanteID;
         this.acaoVoluntariado = acaoVoluntariado;
         this.status = StatusInscricao.CONFIRMADA;
     }
-
+//
     public void cancelar() {
         this.status = StatusInscricao.CANCELADA;
     }

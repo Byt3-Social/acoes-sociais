@@ -1,7 +1,7 @@
 package com.byt3social.acoessociais.models;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -18,17 +18,16 @@ public class Interesse {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    @ManyToOne
-    @JoinColumn(name = "usuario_id")
-    @JsonBackReference
-    private Usuario usuario;
+    @Column(name = "usuario_id")
+    @JsonProperty("usuario_id")
+    private Integer usuarioId;
     @ManyToOne
     @JoinColumn(name = "segmento_id")
     @JsonManagedReference
     private Segmento segmento;
 
-    public Interesse(Segmento segmento, Usuario usuario) {
-        this.usuario = usuario;
+    public Interesse(Segmento segmento, Integer usuarioID) {
+        this.usuarioId = usuarioID;
         this.segmento = segmento;
     }
 }

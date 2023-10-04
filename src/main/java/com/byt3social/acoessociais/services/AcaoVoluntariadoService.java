@@ -2,13 +2,9 @@ package com.byt3social.acoessociais.services;
 
 import com.byt3social.acoessociais.dto.AcaoVoluntariadoDTO;
 import com.byt3social.acoessociais.models.AcaoVoluntariado;
-import com.byt3social.acoessociais.models.Organizacao;
+import com.byt3social.acoessociais.models.Inscricao;
 import com.byt3social.acoessociais.models.Segmento;
-import com.byt3social.acoessociais.models.Usuario;
-import com.byt3social.acoessociais.repositories.AcaoVoluntariadoRepository;
-import com.byt3social.acoessociais.repositories.OrganizacaoRepository;
-import com.byt3social.acoessociais.repositories.SegmentoRepository;
-import com.byt3social.acoessociais.repositories.UsuarioRepository;
+import com.byt3social.acoessociais.repositories.*;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,32 +16,23 @@ public class AcaoVoluntariadoService {
     @Autowired
     private AcaoVoluntariadoRepository acaoVoluntariadoRepository;
     @Autowired
-    private UsuarioRepository usuarioRepository;
-    @Autowired
     private SegmentoRepository segmentoRepository;
     @Autowired
-    private OrganizacaoRepository organizacaoRepository;
+    private InscricaoRepository inscricaoRepository;
+    @Autowired
+    private ArquivoRepository arquivoRepository;
+    @Autowired
+    private ContratoRepository contratoRepository;
+    @Autowired
+    private AmazonS3Service amazonS3Service;
 
     @Transactional
     public void cadastrarAcaoVoluntariado(AcaoVoluntariadoDTO acaoVoluntariadoDTO) {
-        Usuario usuario = usuarioRepository.findById(acaoVoluntariadoDTO.usuarioID()).get();
-
         AcaoVoluntariado acaoVoluntariado = new AcaoVoluntariado(acaoVoluntariadoDTO);
-        acaoVoluntariado.vincularUsuario(usuario);
 
         if(acaoVoluntariadoDTO.segmentoID() != null){
             Segmento segmento = segmentoRepository.findById(acaoVoluntariadoDTO.segmentoID()).get();
             acaoVoluntariado.vincularSegmento(segmento);
-        }
-
-        if(acaoVoluntariadoDTO.campanha() != null) {
-            acaoVoluntariado.criarCampanha(acaoVoluntariadoDTO.campanha());
-        }
-
-        if(acaoVoluntariadoDTO.organizacaoID() != null) {
-            Organizacao organizacao = organizacaoRepository.findById(acaoVoluntariadoDTO.organizacaoID()).get();
-
-            acaoVoluntariado.vincularOrganizacao(organizacao);
         }
 
         acaoVoluntariadoRepository.save(acaoVoluntariado);
@@ -61,12 +48,6 @@ public class AcaoVoluntariadoService {
             Segmento segmento = segmentoRepository.findById(acaoVoluntariadoDTO.segmentoID()).get();
             acaoVoluntariado.atualizarSegmento(segmento);
         }
-
-        if(acaoVoluntariadoDTO.organizacaoID() != null) {
-            Organizacao organizacao = organizacaoRepository.findById(acaoVoluntariadoDTO.organizacaoID()).get();
-            acaoVoluntariado.atualizarOrganizacao(organizacao);
-        }
-
     }
 
     public List<AcaoVoluntariado> consultarAcoesVoluntariado() {
@@ -79,5 +60,11 @@ public class AcaoVoluntariadoService {
 
     public void excluirAcaoVoluntariado(Integer acaoVoluntariadoID) {
         acaoVoluntariadoRepository.deleteById(acaoVoluntariadoID);
+    }
+
+    public List<Inscricao> consultarInscricoesAcaoVoluntariado(Integer acaoVoluntariadoID) {
+        AcaoVoluntariado acaoVoluntariado = acaoVoluntariadoRepository.getReferenceById(acaoVoluntariadoID);
+
+        return inscricaoRepository.findByAcaoVoluntariado(acaoVoluntariado);
     }
 }

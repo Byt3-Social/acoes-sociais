@@ -1,11 +1,7 @@
 package com.byt3social.acoessociais.models;
 
 import com.byt3social.acoessociais.dto.AcaoVoluntariadoDTO;
-import com.byt3social.acoessociais.dto.CampanhaDTO;
-import com.byt3social.acoessociais.enums.Fase;
-import com.byt3social.acoessociais.enums.Formato;
-import com.byt3social.acoessociais.enums.Nivel;
-import com.byt3social.acoessociais.enums.Tipo;
+import com.byt3social.acoessociais.enums.*;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
@@ -17,9 +13,12 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.sql.Time;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.regex.Pattern;
 
 @Table(name = "acoes_voluntariado")
 @Entity(name = "AcaoVoluntariado")
@@ -55,6 +54,23 @@ public class AcaoVoluntariado {
     private String informacoesAdicionais;
     private String imagem;
     private Integer vagas;
+    private String url;
+    private Double meta;
+    @Column(name = "tipo_meta")
+    @JsonProperty("tipo_meta")
+    @Enumerated(value = EnumType.STRING)
+    private TipoMeta tipoMeta;
+    private Boolean campanha;
+    private Boolean publica;
+    @Column(name = "valor_personalizado")
+    @JsonProperty("valor_personalizado")
+    private Boolean valorPersonalizado;
+    @Column(name = "usuario_id")
+    @JsonProperty("usuario_id")
+    private Integer usuarioId;
+    @Column(name = "organizacao_id")
+    @JsonProperty("organizacao_id")
+    private Integer organizacaoId;
     @CreationTimestamp
     @Column(name = "created_at")
     @JsonProperty("created_at")
@@ -63,28 +79,22 @@ public class AcaoVoluntariado {
     @Column(name = "updated_at")
     @JsonProperty("updated_at")
     private Date updatedAt;
-    @OneToOne(cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "campanha_id")
-    @JsonManagedReference
-    private Campanha campanha;
+    @OneToOne
+    @JoinColumn(name = "contrato_id")
+    private Contrato contrato;
     @ManyToOne
     @JoinColumn(name = "segmento_id")
     @JsonManagedReference
     private Segmento segmento;
-    @ManyToOne
-    @JoinColumn(name = "usuario_id")
-    @JsonManagedReference
-    private Usuario usuario;
-    @ManyToOne
-    @JoinColumn(name = "organizacao_id")
-    @JsonManagedReference
-    private Organizacao organizacao;
     @OneToMany(mappedBy = "acaoVoluntariado")
     @JsonManagedReference
     private List<Arquivo> arquivos = new ArrayList<>();
     @OneToMany(mappedBy = "acaoVoluntariado")
     @JsonManagedReference
     private List<Inscricao> inscricoes = new ArrayList<>();
+
+    private static final Pattern NONLATIN = Pattern.compile("[^\\w-]");
+    private static final Pattern WHITESPACE = Pattern.compile("[\\s]");
 
     public AcaoVoluntariado(AcaoVoluntariadoDTO acaoVoluntariadoDTO) {
         this.nomeAcao = acaoVoluntariadoDTO.nomeAcao();
@@ -98,24 +108,25 @@ public class AcaoVoluntariado {
         this.local = acaoVoluntariadoDTO.local();
         this.informacoesAdicionais = acaoVoluntariadoDTO.informacoesAdicionais();
         this.vagas = acaoVoluntariadoDTO.vagas();
+        this.url = toSlug(acaoVoluntariadoDTO.nomeAcao());
+        this.meta = acaoVoluntariadoDTO.meta();
+        this.tipoMeta = acaoVoluntariadoDTO.tipoMeta();
+        this.campanha = acaoVoluntariadoDTO.campanha();
+        this.publica = acaoVoluntariadoDTO.publica();
+        this.valorPersonalizado = acaoVoluntariadoDTO.valorPersonalizado();
+        this.usuarioId = acaoVoluntariadoDTO.usuarioId();
+        this.organizacaoId = acaoVoluntariadoDTO.organizacaoId();
     }
 
-    public void criarCampanha(CampanhaDTO campanhaDTO) {
-        Campanha campanha = new Campanha(campanhaDTO, this);
-
-        this.campanha = campanha;
+    private static String toSlug(String nomeAcao) {
+        String nowhitespace = WHITESPACE.matcher(nomeAcao).replaceAll("-");
+        String normalized = Normalizer.normalize(nowhitespace, Normalizer.Form.NFD);
+        String slug = NONLATIN.matcher(normalized).replaceAll("");
+        return slug.toLowerCase(Locale.forLanguageTag("pt-BR"));
     }
 
     public void vincularSegmento(Segmento segmento) {
         this.segmento = segmento;
-    }
-
-    public void vincularUsuario(Usuario usuario) {
-        this.usuario = usuario;
-    }
-
-    public void vincularOrganizacao(Organizacao organizacao) {
-        this.organizacao = organizacao;
     }
 
     public void atualizar(AcaoVoluntariadoDTO acaoVoluntariadoDTO) {
@@ -163,12 +174,28 @@ public class AcaoVoluntariado {
             this.vagas = acaoVoluntariadoDTO.vagas();
         }
 
+        if(acaoVoluntariadoDTO.meta() != null) {
+            this.meta = acaoVoluntariadoDTO.meta();
+        }
+
+        if(acaoVoluntariadoDTO.tipoMeta() != null) {
+            this.tipoMeta = acaoVoluntariadoDTO.tipoMeta();
+        }
+
         if(acaoVoluntariadoDTO.campanha() != null) {
-            if(this.campanha != null) {
-                this.campanha.atualizar(acaoVoluntariadoDTO.campanha());
-            } else {
-                this.campanha = new Campanha(acaoVoluntariadoDTO.campanha(), this);
-            }
+            this.campanha = acaoVoluntariadoDTO.campanha();
+        }
+
+        if(acaoVoluntariadoDTO.publica() != null) {
+            this.publica = acaoVoluntariadoDTO.publica();
+        }
+
+        if(acaoVoluntariadoDTO.valorPersonalizado() != null) {
+            this.valorPersonalizado = acaoVoluntariadoDTO.valorPersonalizado();
+        }
+
+        if(acaoVoluntariadoDTO.organizacaoId() != null) {
+            this.organizacaoId = acaoVoluntariadoDTO.organizacaoId();
         }
     }
 

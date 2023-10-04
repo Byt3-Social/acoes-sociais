@@ -2,6 +2,7 @@ package com.byt3social.acoessociais.controllers;
 
 import com.byt3social.acoessociais.dto.AcaoVoluntariadoDTO;
 import com.byt3social.acoessociais.models.AcaoVoluntariado;
+import com.byt3social.acoessociais.models.Inscricao;
 import com.byt3social.acoessociais.services.AcaoVoluntariadoService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,13 @@ public class AcaoVoluntariadoController {
         AcaoVoluntariado acaoVoluntariado = acaoVoluntariadoService.consultarAcaoVoluntariado(acaoVoluntariadoID);
 
         return new ResponseEntity(acaoVoluntariado, HttpStatus.OK);
+    }
+
+    @GetMapping("/acoes-voluntariado/{id}/inscricoes")
+    public ResponseEntity consultarInscricoesAcaoVoluntariado(@PathVariable("id") Integer acaoVoluntariadoID) {
+        List<Inscricao> inscricoes = acaoVoluntariadoService.consultarInscricoesAcaoVoluntariado(acaoVoluntariadoID);
+
+        return new ResponseEntity(inscricoes, HttpStatus.OK);
     }
 
     @DeleteMapping("/acoes-voluntariado/{id}")

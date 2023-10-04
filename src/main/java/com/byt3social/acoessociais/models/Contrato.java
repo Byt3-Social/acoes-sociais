@@ -1,6 +1,5 @@
 package com.byt3social.acoessociais.models;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
@@ -22,9 +21,9 @@ public class Contrato {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    @Column(name = "nome_arquivo")
-    @JsonProperty("nome_arquivo")
-    private String nomeArquivo;
+    @Column(name = "caminho_s3")
+    @JsonProperty("caminho_s3")
+    private String caminhoS3;
     private String assinatura;
     @CreationTimestamp
     @Column(name = "created_at")
@@ -34,7 +33,6 @@ public class Contrato {
     @Column(name = "updated_at")
     @JsonProperty("updated_at")
     private Date updatedAt;
-    @OneToOne
-    @JoinColumn(name = "campanha_id")
-    private Campanha campanha;
+    @OneToOne(mappedBy = "contrato")
+    private AcaoVoluntariado acaoVoluntariado;
 }
