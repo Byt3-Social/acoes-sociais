@@ -35,4 +35,8 @@ public class Contrato {
     private Date updatedAt;
     @OneToOne(mappedBy = "contrato")
     private AcaoVoluntariado acaoVoluntariado;
+
+    public Contrato(String caminhoContrato) {
+        this.caminhoS3 = caminhoContrato;
+    }
 }

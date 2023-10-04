@@ -22,9 +22,13 @@ public class Arquivo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    @Column(name = "nome_arquivo")
-    @JsonProperty("nome_arquivo")
-    private String nomeArquivo;
+    @Column(name = "caminho_s3")
+    @JsonProperty("caminho_s3")
+    private String caminhoS3;
+    @Column(name = "nome_arquivo_original")
+    @JsonProperty("nome_arquivo_original")
+    private String nomeArquivoOriginal;
+    private Long tamanho;
     @CreationTimestamp
     @Column(name = "created_at")
     @JsonProperty("created_at")
@@ -37,4 +41,9 @@ public class Arquivo {
     @JoinColumn(name = "acao_id")
     @JsonBackReference
     private AcaoVoluntariado acaoVoluntariado;
+
+    public Arquivo(String caminhoArquivo, AcaoVoluntariado acaoVoluntariado) {
+        this.caminhoS3 = caminhoArquivo;
+        this.acaoVoluntariado = acaoVoluntariado;
+    }
 }

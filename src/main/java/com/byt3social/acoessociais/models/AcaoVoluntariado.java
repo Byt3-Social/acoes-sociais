@@ -203,7 +203,11 @@ public class AcaoVoluntariado {
         this.segmento = segmento;
     }
 
-    public void atualizarOrganizacao(Organizacao organizacao) {
-        this.organizacao = organizacao;
+    public void salvarImagem(String caminhoImagem) {
+        this.imagem = caminhoImagem;
+    }
+
+    public void excluirImagem() {
+        this.imagem = null;
     }
 }
