@@ -95,6 +95,9 @@ public class AcaoVoluntariado {
     @OneToMany(mappedBy = "acaoVoluntariado")
     @JsonManagedReference
     private List<Doacao> doacaos;
+    @OneToMany(mappedBy = "acaoVoluntariado")
+    @JsonManagedReference
+    private List<OpcaoContribuicao> opcaoContribuicaos;
 
     private static final Pattern NONLATIN = Pattern.compile("[^\\w-]");
     private static final Pattern WHITESPACE = Pattern.compile("[\\s]");

@@ -1,6 +1,7 @@
 package com.byt3social.acoessociais.controllers;
 
 import com.byt3social.acoessociais.dto.AcaoVoluntariadoDTO;
+import com.byt3social.acoessociais.dto.OpcaoContribuicaoDTO;
 import com.byt3social.acoessociais.models.AcaoVoluntariado;
 import com.byt3social.acoessociais.models.Inscricao;
 import com.byt3social.acoessociais.services.AcaoVoluntariadoService;
@@ -78,6 +79,20 @@ public class AcaoVoluntariadoController {
     @DeleteMapping("/acoes-voluntariado/arquivos/{id}")
     public ResponseEntity excluirImagemAcaoVoluntariado(@PathVariable("id") Integer arquivoID, @RequestParam(value = "tipo") String tipo) {
         acaoVoluntariadoService.excluirArquivoAcaoVoluntariado(arquivoID, tipo);
+
+        return new ResponseEntity(HttpStatus.OK);
+    }
+
+    @PostMapping("/acoes-voluntariado/{id}/opcoes-contribuicao")
+    public ResponseEntity adicionarOpcaoContribuicaoAcaoVoluntariado(@PathVariable("id") Integer acaoVoluntariadoID, @RequestBody OpcaoContribuicaoDTO opcaoContribuicaoDTO) {
+        acaoVoluntariadoService.adicionarOpcaoContribuicao(acaoVoluntariadoID, opcaoContribuicaoDTO);
+
+        return new ResponseEntity(HttpStatus.CREATED);
+    }
+
+    @DeleteMapping("/acoes-voluntariado/opcoes-contribuicao/{id}")
+    public ResponseEntity excluirOpcaoContribuicaoAcaoVoluntariado(@PathVariable("id") Integer opcaoContribuicaoID) {
+        acaoVoluntariadoService.excluirOpcaoContribuicao(opcaoContribuicaoID);
 
         return new ResponseEntity(HttpStatus.OK);
     }

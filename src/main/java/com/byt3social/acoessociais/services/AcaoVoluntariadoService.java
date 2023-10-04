@@ -1,6 +1,7 @@
 package com.byt3social.acoessociais.services;
 
 import com.byt3social.acoessociais.dto.AcaoVoluntariadoDTO;
+import com.byt3social.acoessociais.dto.OpcaoContribuicaoDTO;
 import com.byt3social.acoessociais.dto.OrganizacaoDTO;
 import com.byt3social.acoessociais.exceptions.FileTypeNotSupportedException;
 import com.byt3social.acoessociais.exceptions.InvalidOperationTypeException;
@@ -23,6 +24,8 @@ public class AcaoVoluntariadoService {
     private SegmentoRepository segmentoRepository;
     @Autowired
     private InscricaoRepository inscricaoRepository;
+    @Autowired
+    private OpcaoContribuicaoRepository opcaoContribuicaoRepository;
     @Autowired
     private ArquivoRepository arquivoRepository;
     @Autowired
@@ -190,5 +193,17 @@ public class AcaoVoluntariadoService {
         amazonS3Service.armazenarArquivo(imagem, caminhoImagem);
 
         acaoVoluntariado.salvarImagem(caminhoImagem);
+    }
+
+    @Transactional
+    public void adicionarOpcaoContribuicao(Integer acaoVoluntariadoID, OpcaoContribuicaoDTO opcaoContribuicaoDTO) {
+        AcaoVoluntariado acaoVoluntariado = acaoVoluntariadoRepository.findById(acaoVoluntariadoID).get();
+        OpcaoContribuicao opcaoContribuicao = new OpcaoContribuicao(opcaoContribuicaoDTO, acaoVoluntariado);
+        opcaoContribuicaoRepository.save(opcaoContribuicao);
+    }
+
+    @Transactional
+    public void excluirOpcaoContribuicao(Integer opcaoContribuicaoID) {
+        opcaoContribuicaoRepository.deleteById(opcaoContribuicaoID);
     }
 }
