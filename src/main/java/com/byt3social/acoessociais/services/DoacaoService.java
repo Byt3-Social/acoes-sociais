@@ -1,7 +1,10 @@
 package com.byt3social.acoessociais.services;
 
 import com.byt3social.acoessociais.dto.DoacaoDTO;
+import com.byt3social.acoessociais.dto.PagseguroCancelamentoDTO;
 import com.byt3social.acoessociais.dto.PagseguroTransacaoDTO;
+import com.byt3social.acoessociais.enums.MetodoDoacao;
+import com.byt3social.acoessociais.enums.StatusDoacao;
 import com.byt3social.acoessociais.models.AcaoVoluntariado;
 import com.byt3social.acoessociais.models.Doacao;
 import com.byt3social.acoessociais.models.Doador;
@@ -38,31 +41,41 @@ public class DoacaoService {
         Doacao doacao = new Doacao(doacaoDTO, acaoVoluntariado, doador);
         doacaoRepository.save(doacao);
 
-        PagseguroTransacaoDTO pagseguroTransacaoDTO = pagseguroService.processarPagamentoDoacao(doacaoDTO, doacao.getId());
-        doacao.vincularTransacaoPagseguro(pagseguroTransacaoDTO.code());
-        doacao.atualizarStatus(pagseguroTransacaoDTO);
+        PagseguroTransacaoDTO pagseguroTransacaoDTO = pagseguroService.processarPagamentoDoacao(doacaoDTO, doacao.getId(), acaoVoluntariado);
 
-        if(pagseguroTransacaoDTO.paymentLink() != null) {
-            doacao.atualizarLinkPagamento(pagseguroTransacaoDTO.paymentLink());
+        if(doacaoDTO.metodoDoacao() == MetodoDoacao.PIX) {
+            doacao.vincularTransacaoPagseguro(pagseguroTransacaoDTO.id());
+        } else {
+            doacao.vincularTransacaoPagseguro(pagseguroTransacaoDTO.charges().get(0).id());
+        }
+
+        if(doacaoDTO.metodoDoacao() == MetodoDoacao.PIX) {
+            doacao.atualizarStatus(StatusDoacao.WAITING);
+            doacao.atualizarLinkPagamentoPix(pagseguroTransacaoDTO.qrCodes().get(0));
+        } else if(doacaoDTO.metodoDoacao() == MetodoDoacao.BOLETO) {
+            doacao.atualizarStatus(pagseguroTransacaoDTO.charges().get(0).status());
+            doacao.atualizarLinkPagamentoBoleto(pagseguroTransacaoDTO.charges().get(0).links());
+        } else {
+            doacao.atualizarStatus(pagseguroTransacaoDTO.charges().get(0).status());
         }
     }
 
     @Transactional
-    public void processarNotificacao(String notificationCode) {
-        PagseguroTransacaoDTO pagseguroTransacaoDTO = pagseguroService.consultarNotificacao(notificationCode);
-        Doacao doacao = doacaoRepository.findById(Integer.parseInt(pagseguroTransacaoDTO.reference())).get();
-        doacao.atualizarStatus(pagseguroTransacaoDTO);
+    public void processarNotificacao(PagseguroTransacaoDTO pagseguroTransacaoDTO) {
+        Doacao doacao = doacaoRepository.findById(Integer.parseInt(pagseguroTransacaoDTO.referenceId())).get();
+        doacao.atualizarStatus(pagseguroTransacaoDTO.charges().get(0).status());
+
+        if(doacao.getMetodoDoacao() == MetodoDoacao.PIX) {
+            doacao.atualizarIdentificador(pagseguroTransacaoDTO.charges().get(0).id());
+        }
     }
 
+    @Transactional
     public void cancelarDoacao(Integer doacaoID) {
         Doacao doacao = doacaoRepository.findById(doacaoID).get();
 
-        pagseguroService.cancelarTransacao(doacao.getCodigo());
-    }
+        PagseguroCancelamentoDTO pagseguroCancelamentoDTO = pagseguroService.cancelarPagamento(doacao);
 
-    public void estornarDoacao(Integer doacaoID) {
-        Doacao doacao = doacaoRepository.findById(doacaoID).get();
-
-        pagseguroService.estornarTransacao(doacao.getCodigo());
+        doacao.cancelar(pagseguroCancelamentoDTO);
     }
 }

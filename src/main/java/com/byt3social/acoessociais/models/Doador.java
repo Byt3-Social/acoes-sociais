@@ -41,7 +41,6 @@ public class Doador {
         this.email = doacaoDTO.email();
         this.telefone = doacaoDTO.telefone();
         this.cpf = doacaoDTO.cpf();
-        this.dataNascimento = doacaoDTO.dataNascimento();
         this.usuarioId = doacaoDTO.usuarioId();
     }
 

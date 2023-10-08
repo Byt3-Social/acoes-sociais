@@ -1,7 +1,9 @@
 package com.byt3social.acoessociais.models;
 
 import com.byt3social.acoessociais.dto.DoacaoDTO;
-import com.byt3social.acoessociais.dto.PagseguroTransacaoDTO;
+import com.byt3social.acoessociais.dto.LinkDTO;
+import com.byt3social.acoessociais.dto.PagseguroCancelamentoDTO;
+import com.byt3social.acoessociais.dto.QrCodeDTO;
 import com.byt3social.acoessociais.enums.MetodoDoacao;
 import com.byt3social.acoessociais.enums.StatusDoacao;
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -15,6 +17,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.util.Date;
+import java.util.List;
 
 @Table(name = "doacoes")
 @Entity(name = "Doacao")
@@ -37,6 +40,9 @@ public class Doacao {
     @JsonProperty("status")
     @Enumerated(value = EnumType.STRING)
     private StatusDoacao statusDoacao;
+    @Column(name = "qrcode_text")
+    @JsonProperty("qrcode_text")
+    private String qrcodeText;
     @CreationTimestamp
     @Column(name = "created_at")
     @JsonProperty("created_at")
@@ -57,7 +63,7 @@ public class Doacao {
     public Doacao(DoacaoDTO doacaoDTO, AcaoVoluntariado acaoVoluntariado, Doador doador) {
         this.metodoDoacao = doacaoDTO.metodoDoacao();
         this.valor = doacaoDTO.valorDoacao();
-        this.statusDoacao = StatusDoacao.CADASTRADA;
+        this.statusDoacao = StatusDoacao.CREATED;
         this.acaoVoluntariado = acaoVoluntariado;
         this.doador = doador;
     }
@@ -66,27 +72,28 @@ public class Doacao {
         this.codigo = transacaoID;
     }
 
-    public void atualizarStatus(PagseguroTransacaoDTO pagseguroTransacaoDTO) {
-        this.statusDoacao = converterStatusDoacao(pagseguroTransacaoDTO.status());
+    public void atualizarStatus(StatusDoacao statusDoacao) {
+        this.statusDoacao = statusDoacao;
     }
 
-    private StatusDoacao converterStatusDoacao(Integer status) {
-        if(status == 1) {
-            return StatusDoacao.AGUARDANDO_PAGAMENTO;
-        } else if(status == 2) {
-            return StatusDoacao.EM_ANALISE;
-        } else if(status == 3) {
-            return StatusDoacao.PAGA;
-        } else if(status == 6) {
-            return StatusDoacao.DEVOLVIDA;
-        } else if(status == 7) {
-            return StatusDoacao.CANCELADA;
-        } else {
-            return this.statusDoacao;
-        }
+    public void atualizarLinkPagamentoPix(QrCodeDTO qrCodeDTO) {
+        LinkDTO linkDTO = qrCodeDTO.links().stream().filter(link -> link.media().equals("image/png")).findFirst().get();
+
+        this.qrcodeText = qrCodeDTO.text();
+        this.link = linkDTO.href();
     }
 
-    public void atualizarLinkPagamento(String linkPagamento) {
-        this.link = linkPagamento;
+    public void atualizarLinkPagamentoBoleto(List<LinkDTO> links) {
+        LinkDTO linkDTO = links.stream().filter(link -> link.media().equals("application/pdf")).findFirst().get();
+
+        this.link = linkDTO.href();
+    }
+
+    public void atualizarIdentificador(String identificadorTransacao) {
+        this.codigo = identificadorTransacao;
+    }
+
+    public void cancelar(PagseguroCancelamentoDTO pagseguroCancelamentoDTO) {
+        this.statusDoacao = pagseguroCancelamentoDTO.status();
     }
 }

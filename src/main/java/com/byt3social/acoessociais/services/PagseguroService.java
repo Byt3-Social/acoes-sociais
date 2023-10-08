@@ -1,210 +1,167 @@
 package com.byt3social.acoessociais.services;
 
 import com.byt3social.acoessociais.dto.DoacaoDTO;
-import com.byt3social.acoessociais.dto.PagseguroSessionDTO;
+import com.byt3social.acoessociais.dto.PagseguroCancelamentoDTO;
 import com.byt3social.acoessociais.dto.PagseguroTransacaoDTO;
 import com.byt3social.acoessociais.enums.MetodoDoacao;
-import com.byt3social.acoessociais.exceptions.FailedToGenerateSessionIDException;
-import com.byt3social.acoessociais.exceptions.FailedToProcessDonationResponse;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.byt3social.acoessociais.models.AcaoVoluntariado;
+import com.byt3social.acoessociais.models.Doacao;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class PagseguroService {
-    @Value("${com.byt3social.pagseguro.session-url}")
-    private String sessaoUrl;
+    @Value("${com.byt3social.pagseguro.token}")
+    private String token;
     @Value("${com.byt3social.pagseguro.pagamento-url}")
     private String pagamentoUrl;
-    @Value("${com.byt3social.pagseguro.notificacao-url}")
-    private String notificacaoUrl;
-    @Value("${com.byt3social.pagseguro.notificacao-parametros}")
-    private String notificacaoParametros;
     @Value("${com.byt3social.pagseguro.notification-url}")
     private String notificationUrl;
     @Value("${com.byt3social.pagseguro.cancelamento-url}")
     private String cancelUrl;
-    @Value("${com.byt3social.pagseguro.estorno-url}")
-    private String refundUrl;
 
-    public String gerarIDSessaoDoador() {
-        RestTemplate restTemplate = new RestTemplate();
-        String result = restTemplate.postForObject(sessaoUrl, null, String.class);
-        XmlMapper xmlMapper = new XmlMapper();
-
-        try {
-            PagseguroSessionDTO pagseguroSessionDTO = xmlMapper.readValue(result, PagseguroSessionDTO.class);
-
-            return pagseguroSessionDTO.id();
-        } catch (Exception e) {
-            throw new FailedToGenerateSessionIDException();
-        }
-    }
-
-    public PagseguroTransacaoDTO processarPagamentoDoacao(DoacaoDTO doacaoDTO, Integer doacaoID) {
+    public PagseguroTransacaoDTO processarPagamentoDoacao(DoacaoDTO doacaoDTO, Integer doacaoID, AcaoVoluntariado acaoVoluntariado) {
         RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(token);
 
-        MultiValueMap<String, Object> body;
+        Map<String, String> phones = new HashMap<>();
+        phones.put("country", "55");
+        phones.put("area", doacaoDTO.ddd());
+        phones.put("number", doacaoDTO.telefone());
+        phones.put("type", "MOBILE");
 
-        if(doacaoDTO.metodoDoacao() == MetodoDoacao.CARTAO_CREDITO) {
-            body = pagarCartaoCredito(doacaoDTO, doacaoID);
-        } else {
-            body = pagarBoleto(doacaoDTO, doacaoID);
+        Map<String, Object> customer = new HashMap<>();
+        customer.put("name", doacaoDTO.nome());
+        customer.put("email", doacaoDTO.email());
+        customer.put("tax_id", doacaoDTO.cpf());
+        customer.put("phones", Collections.singletonList(phones));
+
+        Map<String, Object> items = new HashMap<>();
+        items.put("reference_id", doacaoDTO.acaoId().toString());
+        items.put("name", acaoVoluntariado.getNomeAcao());
+        items.put("quantity", 1);
+        items.put("unit_amount", Math.round(doacaoDTO.valorDoacao() * 100));
+
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("reference_id", doacaoID.toString());
+        requestBody.put("customer", customer);
+        requestBody.put("items", Collections.singletonList(items));
+
+        if(doacaoDTO.metodoDoacao() == MetodoDoacao.PIX) {
+            Map<String, Object> value = new HashMap<>();
+            value.put("value", Math.round(doacaoDTO.valorDoacao() * 100));
+
+            Map<String, Object> amount = new HashMap<>();
+            amount.put("amount", value);
+
+            requestBody.put("qr_codes", Collections.singletonList(amount));
+        } else if(doacaoDTO.metodoDoacao() == MetodoDoacao.CARTAO_CREDITO) {
+            Map<String, Object> holder = new HashMap<>();
+            holder.put("name", doacaoDTO.nome());
+
+            Map<String, Object> card = new HashMap<>();
+            card.put("encrypted", doacaoDTO.tokenCartao());
+            card.put("security_code", doacaoDTO.cvv());
+            card.put("holder", holder);
+            card.put("store", false);
+
+            Map<String, Object> paymentMethod = new HashMap<>();
+            paymentMethod.put("type", "CREDIT_CARD");
+            paymentMethod.put("installments", 1);
+            paymentMethod.put("capture", true);
+            paymentMethod.put("card", card);
+
+            Map<String, Object> amount = new HashMap<>();
+            amount.put("value", Math.round(doacaoDTO.valorDoacao() * 100));
+            amount.put("currency", "BRL");
+
+            Map<String, Object> charges = new HashMap<>();
+            charges.put("reference_id", doacaoID.toString());
+            charges.put("description", acaoVoluntariado.getNomeAcao());
+            charges.put("amount", amount);
+            charges.put("payment_method", paymentMethod);
+
+            requestBody.put("charges", Collections.singletonList(charges));
+        } else if(doacaoDTO.metodoDoacao() == MetodoDoacao.BOLETO) {
+            Map<String, Object> address = new HashMap<>();
+            address.put("country", "Brasil");
+            address.put("region", doacaoDTO.endereco().estado());
+            address.put("region_code", doacaoDTO.endereco().estado());
+            address.put("city", doacaoDTO.endereco().cidade());
+            address.put("postal_code", doacaoDTO.endereco().cep());
+            address.put("street", doacaoDTO.endereco().endereco());
+            address.put("number", doacaoDTO.endereco().numero());
+            address.put("locality", doacaoDTO.endereco().bairro());
+
+            Map<String, Object> holder = new HashMap<>();
+            holder.put("name", doacaoDTO.nome());
+            holder.put("tax_id", doacaoDTO.cpf());
+            holder.put("email", doacaoDTO.email());
+            holder.put("address", address);
+
+            Map<String, String> instructionLines = new HashMap<>();
+            instructionLines.put("line_1", "Pagamento processado via PagSeguro");
+
+            LocalDate vencimentoBoleto = LocalDate.now();
+            vencimentoBoleto = vencimentoBoleto.plusDays(7);
+
+            Map<String, Object> boleto = new HashMap<>();
+            boleto.put("due_date", vencimentoBoleto.toString());
+            boleto.put("instruction_lines", instructionLines);
+            boleto.put("holder", holder);
+
+            Map<String, Object> paymentMethod = new HashMap<>();
+            paymentMethod.put("type", "BOLETO");
+            paymentMethod.put("boleto", boleto);
+
+            Map<String, Object> amount = new HashMap<>();
+            amount.put("value", Math.round(doacaoDTO.valorDoacao() * 100));
+            amount.put("currency", "BRL");
+
+            Map<String, Object> charges = new HashMap<>();
+            charges.put("reference_id", doacaoID.toString());
+            charges.put("description", acaoVoluntariado.getNomeAcao());
+            charges.put("amount", amount);
+            charges.put("payment_method", paymentMethod);
+
+            requestBody.put("charges", Collections.singletonList(charges));
         }
 
-        HttpEntity<MultiValueMap<String, Object>> entity = new HttpEntity<>(body, headers);
+        requestBody.put("notification_urls", Collections.singletonList(notificationUrl));
 
-        String resposta = restTemplate.postForObject(pagamentoUrl, entity, String.class);
-        XmlMapper xmlMapper = new XmlMapper();
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
 
-        System.out.println(resposta);
-
-        try {
-            PagseguroTransacaoDTO pagseguroTransacaoDTO = xmlMapper.readValue(resposta, PagseguroTransacaoDTO.class);
-
-            System.out.println(pagseguroTransacaoDTO);
-
-            return pagseguroTransacaoDTO;
-        } catch (Exception e) {
-            System.out.println(e);
-            throw new FailedToProcessDonationResponse();
-        }
+        return restTemplate.postForObject(pagamentoUrl, request, PagseguroTransacaoDTO.class);
     }
 
-    private MultiValueMap<String, Object> pagarCartaoCredito(DoacaoDTO doacaoDTO, Integer doacaoID) {
-        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-        DecimalFormat decimalFormat = new DecimalFormat("#.00");
-
-        body.add("paymentMode", "default");
-        body.add("paymentMethod", converterMetodoDoacao(doacaoDTO.metodoDoacao()));
-        body.add("currency", "BRL");
-        body.add("reference", doacaoID.toString());
-        body.add("senderHash", doacaoDTO.senderHash());
-        body.add("senderName", doacaoDTO.nome());
-        body.add("senderEmail", doacaoDTO.email());
-        body.add("senderAreaCode", doacaoDTO.ddd());
-        body.add("senderPhone", doacaoDTO.telefone());
-        body.add("senderCPF", doacaoDTO.cpf());
-        body.add("itemId1", doacaoDTO.acaoId());
-        body.add("itemDescription1", doacaoDTO.descricao());
-        body.add("itemAmount1", decimalFormat.format(doacaoDTO.valorDoacao()));
-        body.add("itemQuantity1", 1);
-        body.add("creditCardToken", doacaoDTO.tokenCartao());
-        body.add("installmentQuantity", 1);
-        body.add("installmentValue", decimalFormat.format(doacaoDTO.valorDoacao()));
-        body.add("creditCardHolderName", doacaoDTO.nome());
-        body.add("creditCardHolderCPF", doacaoDTO.cpf());
-        body.add("creditCardHolderBirthDate", dateFormat.format(doacaoDTO.dataNascimento()));
-        body.add("creditCardHolderAreaCode", doacaoDTO.ddd());
-        body.add("creditCardHolderPhone", doacaoDTO.telefone());
-        body.add("billingAddressStreet", doacaoDTO.endereco().endereco());
-        body.add("billingAddressNumber", doacaoDTO.endereco().numero());
-        body.add("billingAddressDistrict", doacaoDTO.endereco().bairro());
-        body.add("billingAddressComplement", doacaoDTO.endereco().complemento());
-        body.add("billingAddressCity", doacaoDTO.endereco().cidade());
-        body.add("billingAddressState", doacaoDTO.endereco().estado());
-        body.add("billingAddressPostalCode", doacaoDTO.endereco().cep());
-        body.add("billingAddressCountry", "BRA");
-        body.add("shippingAddressRequired", "false");
-        body.add("notificationURL", notificationUrl);
-        return body;
-    }
-
-    private MultiValueMap<String, Object> pagarBoleto(DoacaoDTO doacaoDTO, Integer doacaoID) {
-        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-        DecimalFormat decimalFormat = new DecimalFormat("#.00");
-
-        body.add("paymentMode", "default");
-        body.add("paymentMethod", converterMetodoDoacao(doacaoDTO.metodoDoacao()));
-        body.add("currency", "BRL");
-        body.add("extraAmount", "0.00");
-        body.add("reference", doacaoID.toString());
-        body.add("senderHash", doacaoDTO.senderHash());
-        body.add("senderName", doacaoDTO.nome());
-        body.add("senderEmail", doacaoDTO.email());
-        body.add("senderAreaCode", doacaoDTO.ddd());
-        body.add("senderPhone", doacaoDTO.telefone());
-        body.add("senderCPF", doacaoDTO.cpf());
-        body.add("itemId1", doacaoDTO.acaoId());
-        body.add("itemDescription1", doacaoDTO.descricao());
-        body.add("itemAmount1", decimalFormat.format(doacaoDTO.valorDoacao()));
-        body.add("itemQuantity1", 1);
-        body.add("shippingAddressRequired", "false");
-        body.add("notificationURL", notificationUrl);
-        return body;
-    }
-
-    private String converterMetodoDoacao(MetodoDoacao metodoDoacao) {
-        if(metodoDoacao.equals(MetodoDoacao.BOLETO)) {
-            return "boleto";
-        } else if(metodoDoacao.equals(MetodoDoacao.CARTAO_CREDITO)) {
-            return "creditCard";
-        } else {
-            return "eft";
-        }
-    }
-
-    public PagseguroTransacaoDTO consultarNotificacao(String notificationCode) {
-        String urlNotificacao = notificacaoUrl + notificationCode + notificacaoParametros;
-
+    public PagseguroCancelamentoDTO cancelarPagamento(Doacao doacao) {
         RestTemplate restTemplate = new RestTemplate();
-        String resposta = restTemplate.getForObject(urlNotificacao, String.class);
 
-        XmlMapper xmlMapper = new XmlMapper();
-
-        try {
-            PagseguroTransacaoDTO pagseguroTransacaoDTO = xmlMapper.readValue(resposta, PagseguroTransacaoDTO.class);
-
-            System.out.println(pagseguroTransacaoDTO);
-
-            return pagseguroTransacaoDTO;
-        } catch (Exception e) {
-            throw new FailedToProcessDonationResponse();
-        }
-    }
-
-    public void cancelarTransacao(String codigo) {
-        RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        headers.setAccept(Collections.singletonList(MediaType.ALL));
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.setBearerAuth(token);
 
-        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("transactionCode", codigo);
+        Map<String, Object> value = new HashMap<>();
+        value.put("value", Math.round(doacao.getValor() * 100));
 
-        HttpEntity<MultiValueMap<String, Object>> entity = new HttpEntity<>(body, headers);
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("amount", value);
 
-        restTemplate.postForObject(cancelUrl, entity, Void.class);
-    }
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
-    public void estornarTransacao(String codigo) {
-        RestTemplate restTemplate = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        headers.setAccept(Collections.singletonList(MediaType.ALL));
-
-        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("transactionCode", codigo);
-
-        HttpEntity<MultiValueMap<String, Object>> entity = new HttpEntity<>(body, headers);
-
-        restTemplate.postForObject(refundUrl, entity, Void.class);
+        return restTemplate.postForObject(cancelUrl + doacao.getCodigo() + "/cancel", entity, PagseguroCancelamentoDTO.class);
     }
 }

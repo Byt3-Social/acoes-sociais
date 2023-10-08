@@ -77,7 +77,7 @@ public class AcaoVoluntariadoController {
     }
 
     @DeleteMapping("/acoes-voluntariado/arquivos/{id}")
-    public ResponseEntity excluirImagemAcaoVoluntariado(@PathVariable("id") Integer arquivoID, @RequestParam(value = "tipo") String tipo) {
+    public ResponseEntity excluirArquivoAcaoVoluntariado(@PathVariable("id") Integer arquivoID, @RequestParam(value = "tipo") String tipo) {
         acaoVoluntariadoService.excluirArquivoAcaoVoluntariado(arquivoID, tipo);
 
         return new ResponseEntity(HttpStatus.OK);

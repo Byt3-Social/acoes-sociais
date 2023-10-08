@@ -4,7 +4,6 @@ public record EnderecoDTO(
         String endereco,
         String numero,
         String bairro,
-        String complemento,
         String cidade,
         String estado,
         String cep

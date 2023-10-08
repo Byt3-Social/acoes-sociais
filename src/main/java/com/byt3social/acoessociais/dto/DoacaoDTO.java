@@ -2,20 +2,16 @@ package com.byt3social.acoessociais.dto;
 
 import com.byt3social.acoessociais.enums.MetodoDoacao;
 
-import java.util.Date;
-
 public record DoacaoDTO(
-        String senderHash,
         String nome,
         String email,
         String ddd,
         String telefone,
         String cpf,
-        Date dataNascimento,
-        EnderecoDTO endereco,
         MetodoDoacao metodoDoacao,
+        EnderecoDTO endereco,
         String tokenCartao,
-        String descricao,
+        String cvv,
         Integer acaoId,
         Double valorDoacao,
         Integer usuarioId
