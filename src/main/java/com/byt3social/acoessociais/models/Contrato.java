@@ -1,5 +1,6 @@
 package com.byt3social.acoessociais.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
@@ -34,7 +35,11 @@ public class Contrato {
     @JsonProperty("updated_at")
     private Date updatedAt;
     @OneToOne(mappedBy = "contrato")
+    @JsonBackReference
     private AcaoVoluntariado acaoVoluntariado;
+    @OneToOne(mappedBy = "contrato")
+    @JsonBackReference
+    private AcaoISP acaoISP;
 
     public Contrato(String caminhoContrato) {
         this.caminhoS3 = caminhoContrato;

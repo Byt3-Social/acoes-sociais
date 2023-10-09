@@ -24,7 +24,7 @@ import java.util.List;
 @NoArgsConstructor
 @Getter
 @Setter
-public class AcaoISP {
+public class AcaoISP extends Acao {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -79,6 +79,9 @@ public class AcaoISP {
     @OneToMany(mappedBy = "acaoISP")
     @JsonManagedReference
     private List<Aporte> aportes = new ArrayList<>();
+    @OneToMany(mappedBy = "acaoISP")
+    @JsonManagedReference
+    private List<Arquivo> arquivos;
 
     public AcaoISP(AcaoISPDTO acaoISPDTO, Categoria categoria, Area area, Incentivo incentivo) {
         this.nomeAcao = acaoISPDTO.nomeAcao();
@@ -130,5 +133,9 @@ public class AcaoISP {
         this.categoria = categoria;
         this.incentivo = incentivo;
         this.area = area;
+    }
+
+    public void incluirContrato(Contrato novoContrato) {
+        this.contrato = novoContrato;
     }
 }

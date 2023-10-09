@@ -38,12 +38,23 @@ public class Arquivo {
     @JsonProperty("updated_at")
     private Date updatedAt;
     @ManyToOne
-    @JoinColumn(name = "acao_id")
+    @JoinColumn(name = "voluntariado_id")
     @JsonBackReference
     private AcaoVoluntariado acaoVoluntariado;
+    @ManyToOne
+    @JoinColumn(name = "isp_id")
+    @JsonBackReference
+    private AcaoISP acaoISP;
 
-    public Arquivo(String caminhoArquivo, AcaoVoluntariado acaoVoluntariado) {
+    public Arquivo(String caminhoArquivo, String nomeDocumento, Long tamanhoDocumento, Acao acao) {
         this.caminhoS3 = caminhoArquivo;
-        this.acaoVoluntariado = acaoVoluntariado;
+        this.nomeArquivoOriginal = nomeDocumento;
+        this.tamanho = tamanhoDocumento;
+
+        if(acao instanceof AcaoVoluntariado) {
+            this.acaoVoluntariado = (AcaoVoluntariado) acao;
+        } else {
+            this.acaoISP = (AcaoISP) acao;
+        }
     }
 }

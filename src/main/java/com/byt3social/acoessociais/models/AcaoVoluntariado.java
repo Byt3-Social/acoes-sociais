@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
 @NoArgsConstructor
 @Getter
 @Setter
-public class AcaoVoluntariado {
+public class AcaoVoluntariado extends Acao {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -98,6 +98,9 @@ public class AcaoVoluntariado {
     @OneToMany(mappedBy = "acaoVoluntariado")
     @JsonManagedReference
     private List<OpcaoContribuicao> opcaoContribuicaos;
+    @OneToMany(mappedBy = "acaoVoluntariado")
+    @JsonManagedReference
+    private List<LocalImpactado> locaisImpactados;
 
     private static final Pattern NONLATIN = Pattern.compile("[^\\w-]");
     private static final Pattern WHITESPACE = Pattern.compile("[\\s]");
@@ -215,5 +218,9 @@ public class AcaoVoluntariado {
 
     public void excluirImagem() {
         this.imagem = null;
+    }
+
+    public void incluirContrato(Contrato novoContrato) {
+        this.contrato = novoContrato;
     }
 }
