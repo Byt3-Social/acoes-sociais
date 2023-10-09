@@ -12,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -62,23 +61,16 @@ public class AcaoVoluntariadoController {
         return new ResponseEntity(HttpStatus.OK);
     }
 
-    @PostMapping("/acoes-voluntariado/{id}/arquivos")
-    public ResponseEntity salvarArquivoAcaoVoluntariado(@PathVariable("id") Integer acaoVoluntariadoID, @RequestParam(value = "tipo") String tipo, @RequestBody MultipartFile arquivo) {
-        acaoVoluntariadoService.salvarArquivoAcaoVoluntariado(acaoVoluntariadoID, tipo, arquivo);
+    @PostMapping("/acoes-voluntariado/{id}/imagens")
+    public ResponseEntity salvarArquivoAcaoVoluntariado(@PathVariable("id") Integer acaoVoluntariadoID, @RequestBody MultipartFile imagem) {
+        acaoVoluntariadoService.salvarImagem(acaoVoluntariadoID, imagem);
 
         return new ResponseEntity(HttpStatus.OK);
     }
 
-    @GetMapping("/acoes-voluntariado/arquivos/{id}")
-    public ResponseEntity recuperarArquivoAcaoVoluntariado(@PathVariable("id") Integer arquivoID, @RequestParam(value = "tipo") String tipo) {
-        String urlArquivo = acaoVoluntariadoService.recuperarArquivoAcaoVoluntariado(arquivoID, tipo);
-
-        return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(urlArquivo)).build();
-    }
-
-    @DeleteMapping("/acoes-voluntariado/arquivos/{id}")
-    public ResponseEntity excluirArquivoAcaoVoluntariado(@PathVariable("id") Integer arquivoID, @RequestParam(value = "tipo") String tipo) {
-        acaoVoluntariadoService.excluirArquivoAcaoVoluntariado(arquivoID, tipo);
+    @DeleteMapping("/acoes-voluntariado/{id}/imagens")
+    public ResponseEntity excluirArquivoAcaoVoluntariado(@PathVariable("id") Integer acaoVoluntariadoID) {
+        acaoVoluntariadoService.excluirImagem(acaoVoluntariadoID);
 
         return new ResponseEntity(HttpStatus.OK);
     }

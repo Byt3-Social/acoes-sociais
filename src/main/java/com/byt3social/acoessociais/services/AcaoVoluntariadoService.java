@@ -2,16 +2,17 @@ package com.byt3social.acoessociais.services;
 
 import com.byt3social.acoessociais.dto.AcaoVoluntariadoDTO;
 import com.byt3social.acoessociais.dto.OpcaoContribuicaoDTO;
-import com.byt3social.acoessociais.dto.OrganizacaoDTO;
 import com.byt3social.acoessociais.exceptions.FileTypeNotSupportedException;
-import com.byt3social.acoessociais.exceptions.InvalidOperationTypeException;
-import com.byt3social.acoessociais.models.*;
+import com.byt3social.acoessociais.models.AcaoVoluntariado;
+import com.byt3social.acoessociais.models.Inscricao;
+import com.byt3social.acoessociais.models.OpcaoContribuicao;
+import com.byt3social.acoessociais.models.Segmento;
 import com.byt3social.acoessociais.repositories.*;
 import jakarta.transaction.Transactional;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -27,11 +28,11 @@ public class AcaoVoluntariadoService {
     @Autowired
     private OpcaoContribuicaoRepository opcaoContribuicaoRepository;
     @Autowired
-    private ArquivoRepository arquivoRepository;
-    @Autowired
-    private ContratoRepository contratoRepository;
-    @Autowired
     private AmazonS3Service amazonS3Service;
+    @Value("${com.byt3social.aws.main-bucket-name}")
+    private String nomeBucketPrincipal;
+    @Value("${com.byt3social.aws.region}")
+    private String awsRegion;
 
     @Transactional
     public void cadastrarAcaoVoluntariado(AcaoVoluntariadoDTO acaoVoluntariadoDTO) {
@@ -76,106 +77,9 @@ public class AcaoVoluntariadoService {
     }
 
     @Transactional
-    public void salvarArquivoAcaoVoluntariado(Integer acaoVoluntariadoID, String tipoArquivo, MultipartFile arquivo) {
+    public void salvarImagem(Integer acaoVoluntariadoID, MultipartFile imagem) {
         AcaoVoluntariado acaoVoluntariado = acaoVoluntariadoRepository.findById(acaoVoluntariadoID).get();
 
-        switch (tipoArquivo) {
-            case "imagem" -> salvarImagem(arquivo, acaoVoluntariado);
-            case "documento" -> salvarDocumento(arquivo, acaoVoluntariado);
-            case "contrato" -> salvarContrato(arquivo, acaoVoluntariado);
-            default -> throw new InvalidOperationTypeException();
-        }
-    }
-
-    public String recuperarArquivoAcaoVoluntariado(Integer arquivoID, String tipo) {
-        switch (tipo) {
-            case "imagem" -> {
-                AcaoVoluntariado acaoVoluntariado = acaoVoluntariadoRepository.findById(arquivoID).get();
-                String caminhoArquivo = acaoVoluntariado.getImagem();
-
-                return amazonS3Service.recuperarArquivo(caminhoArquivo);
-            }
-
-            case "documento" -> {
-                Arquivo arquivo = arquivoRepository.findById(arquivoID).get();
-                String caminhoArquivo = arquivo.getCaminhoS3();
-
-                return amazonS3Service.recuperarArquivo(caminhoArquivo);
-            }
-
-            case "contrato" -> {
-                Contrato contrato = contratoRepository.findById(arquivoID).get();
-                String caminhoContrato = contrato.getCaminhoS3();
-                return amazonS3Service.recuperarArquivo(caminhoContrato);
-            }
-
-            default -> throw new InvalidOperationTypeException();
-        }
-    }
-
-    @Transactional
-    public void excluirArquivoAcaoVoluntariado(Integer arquivoID, String tipo) {
-        switch (tipo) {
-            case "imagem" -> {
-                AcaoVoluntariado acaoVoluntariado = acaoVoluntariadoRepository.findById(arquivoID).get();
-                amazonS3Service.excluirArquivo(acaoVoluntariado.getImagem());
-                acaoVoluntariado.excluirImagem();
-            }
-
-            case "documento" -> {
-                Arquivo arquivo = arquivoRepository.findById(arquivoID).get();
-                amazonS3Service.excluirArquivo(arquivo.getCaminhoS3());
-                arquivoRepository.deleteById(arquivoID);
-            }
-
-            case "contrato" -> {
-                Contrato contrato = contratoRepository.findById(arquivoID).get();
-                amazonS3Service.excluirArquivo(contrato.getCaminhoS3());
-                contratoRepository.deleteById(arquivoID);
-            }
-
-            default -> throw new InvalidOperationTypeException();
-        }
-    }
-
-    private void salvarContrato(MultipartFile contrato, AcaoVoluntariado acaoVoluntariado) {
-        if(!FilenameUtils.isExtension(contrato.getOriginalFilename(), "pdf")) {
-            throw new FileTypeNotSupportedException();
-        }
-
-        RestTemplate restTemplate = new RestTemplate();
-        OrganizacaoDTO organizacaoDTO = restTemplate.getForObject("http://localhost:8081/organizacoes/" + acaoVoluntariado.getOrganizacaoId(), OrganizacaoDTO.class);
-
-        String nomeContrato = organizacaoDTO.cnpj() + " - Contrato de Doação." + FilenameUtils.getExtension(contrato.getOriginalFilename());
-        String pastaContrato = "acoes/voluntariado/" + acaoVoluntariado.getId() + "/contratos/";
-        String caminhoContrato = pastaContrato + nomeContrato;
-
-        if(!amazonS3Service.existeObjeto(pastaContrato)) {
-            amazonS3Service.criarPasta(pastaContrato);
-        }
-
-        amazonS3Service.armazenarArquivo(contrato, caminhoContrato);
-
-        Contrato novoContrato = new Contrato(caminhoContrato);
-        contratoRepository.save(novoContrato);
-    }
-
-    private void salvarDocumento(MultipartFile documento, AcaoVoluntariado acaoVoluntariado) {
-        String nomeDocumento = documento.getOriginalFilename();
-        String pastaDocumento = "acoes/voluntariado/" + acaoVoluntariado.getId() + "/arquivos/";
-        String caminhoDocumento = pastaDocumento + nomeDocumento;
-
-        if(!amazonS3Service.existeObjeto(pastaDocumento)) {
-            amazonS3Service.criarPasta(pastaDocumento);
-        }
-
-        amazonS3Service.armazenarArquivo(documento, caminhoDocumento);
-
-        Arquivo arquivoAcaoVoluntariado = new Arquivo(caminhoDocumento, acaoVoluntariado);
-        arquivoRepository.save(arquivoAcaoVoluntariado);
-    }
-
-    private void salvarImagem(MultipartFile imagem, AcaoVoluntariado acaoVoluntariado) {
         String[] extensoes = {"png", "jpeg", "jpg"};
 
         if(!FilenameUtils.isExtension(imagem.getOriginalFilename(), extensoes)) {
@@ -185,6 +89,7 @@ public class AcaoVoluntariadoService {
         String nomeImagem = imagem.getOriginalFilename();
         String pastaImagem = "acoes/voluntariado/" + acaoVoluntariado.getId() + "/imagens/";
         String caminhoImagem = pastaImagem + nomeImagem;
+        String urlDownload = "https://" + nomeBucketPrincipal + ".s3.sa-east-1.amazonaws.com/" + caminhoImagem;
 
         if(!amazonS3Service.existeObjeto(pastaImagem)) {
             amazonS3Service.criarPasta(pastaImagem);
@@ -192,7 +97,20 @@ public class AcaoVoluntariadoService {
 
         amazonS3Service.armazenarArquivo(imagem, caminhoImagem);
 
-        acaoVoluntariado.salvarImagem(caminhoImagem);
+        if(acaoVoluntariado.getImagem() != null) {
+            excluirImagem(acaoVoluntariadoID);
+        }
+
+        acaoVoluntariado.salvarImagem(urlDownload);
+    }
+
+    @Transactional
+    public void excluirImagem(Integer acaoVoluntariadoID) {
+        AcaoVoluntariado acaoVoluntariado = acaoVoluntariadoRepository.findById(acaoVoluntariadoID).get();
+        String[] url = acaoVoluntariado.getImagem().split("https://" + nomeBucketPrincipal + ".s3." + awsRegion + ".amazonaws.com/");
+
+        amazonS3Service.excluirArquivo(url[1]);
+        acaoVoluntariado.excluirImagem();
     }
 
     @Transactional
