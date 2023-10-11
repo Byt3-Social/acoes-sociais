@@ -25,6 +25,8 @@ public class DoacaoService {
     private AcaoVoluntariadoRepository acaoVoluntariadoRepository;
     @Autowired
     private DoadorRepository doadorRepository;
+    @Autowired
+    private EmailService emailService;
 
     @Transactional
     public void realizarDoacao(DoacaoDTO doacaoDTO) {
@@ -67,6 +69,10 @@ public class DoacaoService {
 
         if(doacao.getMetodoDoacao() == MetodoDoacao.PIX) {
             doacao.atualizarIdentificador(pagseguroTransacaoDTO.charges().get(0).id());
+        }
+
+        if(pagseguroTransacaoDTO.charges().get(0).status() == StatusDoacao.PAID) {
+            emailService.notificarDoacaoRecebida(doacao);
         }
     }
 
