@@ -33,6 +33,11 @@ public record AcaoVoluntariadoDTO(
         Boolean publica,
         @JsonProperty("valor_personalizado")
         Boolean valorPersonalizado,
+        Integer multiplicador,
+        @JsonProperty("sobre_organizacao")
+        String sobreOrganizacao,
+        @JsonProperty("sobre_acao")
+        String sobreAcao,
         @JsonProperty("segmento_id")
         Integer segmentoID,
         @JsonProperty("usuario_id")

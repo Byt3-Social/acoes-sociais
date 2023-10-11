@@ -65,6 +65,13 @@ public class AcaoVoluntariado extends Acao {
     @Column(name = "valor_personalizado")
     @JsonProperty("valor_personalizado")
     private Boolean valorPersonalizado;
+    private Integer multiplicador;
+    @Column(name = "sobre_organizacao")
+    @JsonProperty("sobre_organizacao")
+    private String sobreOrganizacao;
+    @Column(name = "sobre_acao")
+    @JsonProperty("sobre_acao")
+    private String sobreAcao;
     @Column(name = "usuario_id")
     @JsonProperty("usuario_id")
     private Integer usuarioId;
@@ -123,6 +130,9 @@ public class AcaoVoluntariado extends Acao {
         this.campanha = acaoVoluntariadoDTO.campanha();
         this.publica = acaoVoluntariadoDTO.publica();
         this.valorPersonalizado = acaoVoluntariadoDTO.valorPersonalizado();
+        this.multiplicador = acaoVoluntariadoDTO.multiplicador();
+        this.sobreAcao = acaoVoluntariadoDTO.sobreAcao();
+        this.sobreOrganizacao = acaoVoluntariadoDTO.sobreOrganizacao();
         this.usuarioId = acaoVoluntariadoDTO.usuarioId();
         this.organizacaoId = acaoVoluntariadoDTO.organizacaoId();
     }
@@ -201,6 +211,18 @@ public class AcaoVoluntariado extends Acao {
 
         if(acaoVoluntariadoDTO.valorPersonalizado() != null) {
             this.valorPersonalizado = acaoVoluntariadoDTO.valorPersonalizado();
+        }
+
+        if(acaoVoluntariadoDTO.multiplicador() != null) {
+            this.multiplicador = acaoVoluntariadoDTO.multiplicador();
+        }
+
+        if(acaoVoluntariadoDTO.sobreOrganizacao() != null) {
+            this.sobreOrganizacao = acaoVoluntariadoDTO.sobreOrganizacao();
+        }
+
+        if(acaoVoluntariadoDTO.sobreAcao() != null) {
+            this.sobreAcao = acaoVoluntariadoDTO.sobreAcao();
         }
 
         if(acaoVoluntariadoDTO.organizacaoId() != null) {
