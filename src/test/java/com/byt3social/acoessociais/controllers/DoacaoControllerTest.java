@@ -4,11 +4,7 @@ import com.byt3social.acoessociais.dto.DoacaoDTO;
 import com.byt3social.acoessociais.dto.PagseguroTransacaoDTO;
 import com.byt3social.acoessociais.enums.MetodoDoacao;
 import com.byt3social.acoessociais.services.DoacaoService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,8 +12,9 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.verify;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -43,15 +40,14 @@ public class DoacaoControllerTest {
             "token123",
             "cvv123",
             1,
-            100.0,
-            123
+            100.0
         );
 
-        doNothing().when(doacaoService).realizarDoacao(doacaoDTO);
+        doNothing().when(doacaoService).realizarDoacao(doacaoDTO, 1);
 
-        ResponseEntity response = doacaoController.realizarDoacao(doacaoDTO);
+        ResponseEntity response = doacaoController.realizarDoacao(String.valueOf(1), doacaoDTO);
 
-        verify(doacaoService).realizarDoacao(doacaoDTO);
+        verify(doacaoService).realizarDoacao(doacaoDTO, 1);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
     }
 

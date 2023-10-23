@@ -50,8 +50,7 @@ public class DoacaoRepositoryTest {
             "token",
             "123",
             1,
-            100.0,
-            1
+            100.0
         );
 
         AcaoVoluntariado acaoVoluntariado = new AcaoVoluntariado();
@@ -80,8 +79,7 @@ public class DoacaoRepositoryTest {
             "token",
             "123",
             1,
-            100.0,
-            1
+            100.0
         );
 
         AcaoVoluntariado acaoVoluntariado = new AcaoVoluntariado();
@@ -97,7 +95,7 @@ public class DoacaoRepositoryTest {
     @Test
     public void testAtualizarStatus() {
         DoacaoDTO doacaoDTO = new DoacaoDTO("John Doe", "john@example.com", "123", "555-123456", "123456789",
-                MetodoDoacao.PIX, null, "token", "123", 1, 100.0, 1);
+                MetodoDoacao.PIX, null, "token", "123", 1, 100.0);
         AcaoVoluntariado acaoVoluntariado = new AcaoVoluntariado();
         Doador doador = new Doador();
         Doacao doacao = new Doacao(doacaoDTO, acaoVoluntariado, doador);
@@ -114,7 +112,7 @@ public class DoacaoRepositoryTest {
     @Test
     public void testAtualizarLinkPagamentoPix() {
         DoacaoDTO doacaoDTO = new DoacaoDTO("John Doe", "john@example.com", "123", "555-123456", "123456789",
-                MetodoDoacao.PIX, null, "token", "123", 1, 100.0, 1);
+                MetodoDoacao.PIX, null, "token", "123", 1, 100.0);
         AcaoVoluntariado acaoVoluntariado = new AcaoVoluntariado();
         Doador doador = new Doador();
         Doacao doacao = new Doacao(doacaoDTO, acaoVoluntariado, doador);
@@ -133,7 +131,7 @@ public class DoacaoRepositoryTest {
     @Test
     public void testAtualizarLinkPagamentoBoleto() {
         DoacaoDTO doacaoDTO = new DoacaoDTO("John Doe", "john@example.com", "123", "555-123456", "123456789",
-                MetodoDoacao.PIX, null, "token", "123", 1, 100.0, 1);
+                MetodoDoacao.PIX, null, "token", "123", 1, 100.0);
         AcaoVoluntariado acaoVoluntariado = new AcaoVoluntariado();
         Doador doador = new Doador();
         Doacao doacao = new Doacao(doacaoDTO, acaoVoluntariado, doador);
@@ -151,7 +149,7 @@ public class DoacaoRepositoryTest {
     @Test
     public void testAtualizarIdentificador() {
         DoacaoDTO doacaoDTO = new DoacaoDTO("John Doe", "john@example.com", "123", "555-123456", "123456789",
-                MetodoDoacao.PIX, null, "token", "123", 1, 100.0, 1);
+                MetodoDoacao.PIX, null, "token", "123", 1, 100.0);
         AcaoVoluntariado acaoVoluntariado = new AcaoVoluntariado();
         Doador doador = new Doador();
         Doacao doacao = new Doacao(doacaoDTO, acaoVoluntariado, doador);
@@ -169,7 +167,7 @@ public class DoacaoRepositoryTest {
     @Test
     public void testCancelarDoacao() {
         DoacaoDTO doacaoDTO = new DoacaoDTO("John Doe", "john@example.com", "123", "555-123456", "123456789",
-                MetodoDoacao.PIX, null, "token", "123", 1, 100.0, 1);
+                MetodoDoacao.PIX, null, "token", "123", 1, 100.0);
         AcaoVoluntariado acaoVoluntariado = new AcaoVoluntariado();
         Doador doador = new Doador();
         Doacao doacao = new Doacao(doacaoDTO, acaoVoluntariado, doador);
@@ -192,7 +190,7 @@ public class DoacaoRepositoryTest {
         AcaoVoluntariado acaoVoluntariado = new AcaoVoluntariado();
         acaoVoluntariado = acaoVoluntariadoRepository.save(acaoVoluntariado);
         DoacaoDTO doacaoDTO = new DoacaoDTO("John Doe", "john@example.com", "123", "555-123456", "123456789",
-                MetodoDoacao.PIX, null, "token", "123", acaoVoluntariado.getId(), 100.0, 1);
+                MetodoDoacao.PIX, null, "token", "123", acaoVoluntariado.getId(), 100.0);
         Doacao doacao = new Doacao(doacaoDTO, acaoVoluntariado, doador);
 
         doacao = doacaoRepository.save(doacao);

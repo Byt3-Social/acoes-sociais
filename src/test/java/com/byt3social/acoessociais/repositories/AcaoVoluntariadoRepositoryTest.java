@@ -1,23 +1,19 @@
 package com.byt3social.acoessociais.repositories;
 
-import com.byt3social.acoessociais.models.AcaoVoluntariado;
 import com.byt3social.acoessociais.dto.AcaoVoluntariadoDTO;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
-import java.sql.Time;
-import java.util.Date;
-
+import com.byt3social.acoessociais.enums.*;
+import com.byt3social.acoessociais.models.AcaoVoluntariado;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
-import com.byt3social.acoessociais.enums.Nivel;
-import com.byt3social.acoessociais.enums.Formato;
-import com.byt3social.acoessociais.enums.Fase;
-import com.byt3social.acoessociais.enums.Tipo;
-import com.byt3social.acoessociais.enums.TipoMeta;
+
+import java.sql.Time;
+import java.time.LocalDate;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -72,9 +68,9 @@ public class AcaoVoluntariadoRepositoryTest {
             Fase.CRIADA,
             Formato.HIBRIDO,
             Tipo.MENTORIA,
-            new Date(),
-            new Date(),
-            new Time(System.currentTimeMillis()),
+            LocalDate.now(),
+            LocalDate.now(),
+            new Time(System.currentTimeMillis()).toString(),
             "Sample Location",
             "Sample Informacoes Adicionais",
             100,
@@ -86,9 +82,10 @@ public class AcaoVoluntariadoRepositoryTest {
             2,
             "Sample Sobre Organizacao",
             "Sample Sobre Acao",
+            null,
             1,
             1,
-            1
+                1
         );
     }
 }

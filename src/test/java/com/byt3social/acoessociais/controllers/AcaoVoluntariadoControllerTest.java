@@ -1,19 +1,10 @@
 package com.byt3social.acoessociais.controllers;
 
-import com.byt3social.acoessociais.controllers.AcaoVoluntariadoController;
 import com.byt3social.acoessociais.dto.AcaoVoluntariadoDTO;
-import com.byt3social.acoessociais.enums.Fase;
-import com.byt3social.acoessociais.enums.Formato;
-import com.byt3social.acoessociais.enums.Nivel;
-import com.byt3social.acoessociais.enums.Tipo;
-import com.byt3social.acoessociais.enums.TipoMeta;
+import com.byt3social.acoessociais.enums.*;
 import com.byt3social.acoessociais.models.AcaoVoluntariado;
 import com.byt3social.acoessociais.services.AcaoVoluntariadoService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,12 +13,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.sql.Time;
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -48,9 +39,9 @@ public class AcaoVoluntariadoControllerTest {
             Fase.CRIADA,
             Formato.PRESENCIAL,
             Tipo.MENTORIA,
-            new Date(),
-            new Date(),
-            time,
+                LocalDate.now(),
+                LocalDate.now(),
+            time.toString(),
             "Local da Ação",
             "Informações adicionais",
             100,
@@ -62,9 +53,10 @@ public class AcaoVoluntariadoControllerTest {
             2,
             "Sobre a organização",
             "Sobre a ação",
-            1,
+            null,
             123,
-            456
+            456,
+                1
         );
     }
 
