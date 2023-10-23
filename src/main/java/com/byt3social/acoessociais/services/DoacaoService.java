@@ -15,6 +15,10 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 @Service
 public class DoacaoService {
     @Autowired
@@ -29,12 +33,12 @@ public class DoacaoService {
     private EmailService emailService;
 
     @Transactional
-    public void realizarDoacao(DoacaoDTO doacaoDTO) {
+    public Doacao realizarDoacao(DoacaoDTO doacaoDTO, Integer colaboradorId) {
         AcaoVoluntariado acaoVoluntariado = acaoVoluntariadoRepository.getReferenceById(doacaoDTO.acaoId());
         Doador doador = doadorRepository.findByCpf(doacaoDTO.cpf());
 
         if(doador == null) {
-            doador = new Doador(doacaoDTO);
+            doador = new Doador(doacaoDTO, colaboradorId);
             doadorRepository.save(doador);
         } else {
             doador.atualizar(doacaoDTO);
@@ -60,6 +64,8 @@ public class DoacaoService {
         } else {
             doacao.atualizarStatus(pagseguroTransacaoDTO.charges().get(0).status());
         }
+
+        return doacao;
     }
 
     @Transactional
@@ -83,5 +89,29 @@ public class DoacaoService {
         PagseguroCancelamentoDTO pagseguroCancelamentoDTO = pagseguroService.cancelarPagamento(doacao);
 
         doacao.cancelar(pagseguroCancelamentoDTO);
+    }
+
+    public Doacao consultarDoacao(Integer doacaoID) {
+        return doacaoRepository.findById(doacaoID).get();
+    }
+
+    public Map gerarEstatisticas(Integer acaoID) {
+        AcaoVoluntariado acaoVoluntariado = acaoVoluntariadoRepository.getReferenceById(acaoID);
+
+        Map<String, Object> estatisticas = new HashMap<>();
+        estatisticas.put("arrecadado", doacaoRepository.arrecadado(acaoVoluntariado));
+        estatisticas.put("processando", doacaoRepository.processado(acaoVoluntariado));
+        estatisticas.put("cancelado", doacaoRepository.cancelado(acaoVoluntariado));
+        estatisticas.put("doacoes", doacaoRepository.doacoes(acaoVoluntariado));
+        estatisticas.put("doacoesPorMetodoDoacao", doacaoRepository.doacoesPorMetodoDoacao(acaoVoluntariado));
+        estatisticas.put("doacoesPorDia", doacaoRepository.doacoesPorDia(acaoVoluntariado));
+
+        return estatisticas;
+    }
+
+    public List<Map> consultarDoacoes(Integer colaboradorId) {
+        List<Map> doacoes = doacaoRepository.findByUsuarioId(colaboradorId);
+
+        return doacoes;
     }
 }

@@ -20,8 +20,8 @@ public class InteresseService {
     private InteresseRepository interesseRepository;
 
     @Transactional
-    public void manisfestarInteresse(InteresseDTO interesseDTO) {
-        List<Interesse> interesses = interesseRepository.findByUsuarioId(interesseDTO.usuarioId());
+    public void manisfestarInteresse(InteresseDTO interesseDTO, Integer colaboradorId) {
+        List<Interesse> interesses = interesseRepository.findByUsuarioId(colaboradorId);
         ListIterator<Interesse> interesseListIterator = interesses.listIterator();
 
         while(interesseListIterator.hasNext()) {
@@ -40,11 +40,17 @@ public class InteresseService {
 
             if(!existeInteresse) {
                 Segmento segmento = segmentoRepository.findById(segmentoID).get();
-                Interesse novoInteresse = new Interesse(segmento, interesseDTO.usuarioId());
+                Interesse novoInteresse = new Interesse(segmento, colaboradorId);
 
                 interesseRepository.save(novoInteresse);
                 interesses.add(novoInteresse);
             }
         }
+    }
+
+    public List<Integer> consultarInteresses(Integer colaboradorId) {
+        List<Integer> interesses = interesseRepository.findIdByUsuarioId(colaboradorId);
+
+        return interesses;
     }
 }

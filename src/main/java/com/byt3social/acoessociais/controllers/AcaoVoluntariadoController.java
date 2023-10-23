@@ -13,17 +13,19 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
+
 public class AcaoVoluntariadoController {
     @Autowired
     private AcaoVoluntariadoService acaoVoluntariadoService;
 
     @PostMapping( "/acoes-voluntariado")
     public ResponseEntity cadastrarAcaoVoluntariado(@Valid @RequestBody AcaoVoluntariadoDTO acaoVoluntariadoDTO) {
-        acaoVoluntariadoService.cadastrarAcaoVoluntariado(acaoVoluntariadoDTO);
+        Integer id = acaoVoluntariadoService.cadastrarAcaoVoluntariado(acaoVoluntariadoDTO);
 
-        return new ResponseEntity(HttpStatus.CREATED);
+        return new ResponseEntity(id, HttpStatus.CREATED);
     }
 
     @PutMapping( "/acoes-voluntariado/{id}")
@@ -63,9 +65,9 @@ public class AcaoVoluntariadoController {
 
     @PostMapping("/acoes-voluntariado/{id}/imagens")
     public ResponseEntity salvarArquivoAcaoVoluntariado(@PathVariable("id") Integer acaoVoluntariadoID, @RequestBody MultipartFile imagem) {
-        acaoVoluntariadoService.salvarImagem(acaoVoluntariadoID, imagem);
+        String urlImagem = acaoVoluntariadoService.salvarImagem(acaoVoluntariadoID, imagem);
 
-        return new ResponseEntity(HttpStatus.OK);
+        return new ResponseEntity(urlImagem, HttpStatus.OK);
     }
 
     @DeleteMapping("/acoes-voluntariado/{id}/imagens")
@@ -87,5 +89,12 @@ public class AcaoVoluntariadoController {
         acaoVoluntariadoService.excluirOpcaoContribuicao(opcaoContribuicaoID);
 
         return new ResponseEntity(HttpStatus.OK);
+    }
+
+    @GetMapping("/acoes/divulgacao")
+    public ResponseEntity buscarAcoesParaDivulgacao() {
+        Map<String, List<AcaoVoluntariado>> acoes = acaoVoluntariadoService.buscarAcoesParaDivulgacao();
+
+        return new ResponseEntity(acoes, HttpStatus.OK);
     }
 }

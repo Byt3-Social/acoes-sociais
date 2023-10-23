@@ -7,12 +7,10 @@ import com.byt3social.acoessociais.dto.QrCodeDTO;
 import com.byt3social.acoessociais.enums.MetodoDoacao;
 import com.byt3social.acoessociais.enums.StatusDoacao;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -23,6 +21,7 @@ import java.util.List;
 @Entity(name = "Doacao")
 @EqualsAndHashCode(of = "id")
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
 public class Doacao {
@@ -41,7 +40,6 @@ public class Doacao {
     @Enumerated(value = EnumType.STRING)
     private StatusDoacao statusDoacao;
     @Column(name = "qrcode_text")
-    @JsonProperty("qrcode_text")
     private String qrcodeText;
     @CreationTimestamp
     @Column(name = "created_at")
@@ -57,7 +55,7 @@ public class Doacao {
     private AcaoVoluntariado acaoVoluntariado;
     @ManyToOne
     @JoinColumn(name = "doador_id")
-    @JsonBackReference
+    @JsonManagedReference
     private Doador doador;
 
     public Doacao(DoacaoDTO doacaoDTO, AcaoVoluntariado acaoVoluntariado, Doador doador) {

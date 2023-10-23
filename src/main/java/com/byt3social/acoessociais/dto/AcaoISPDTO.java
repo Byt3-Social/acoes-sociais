@@ -3,32 +3,27 @@ package com.byt3social.acoessociais.dto;
 import com.byt3social.acoessociais.enums.Abrangencia;
 import com.byt3social.acoessociais.enums.StatusISP;
 import com.byt3social.acoessociais.enums.TipoInvestimento;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 
 public record AcaoISPDTO(
-        @JsonProperty("nome_acao")
+        @NotBlank(message = "Campo obrigatório")
         String nomeAcao,
         String descricao,
         Abrangencia abrangencia,
-        @JsonProperty("tipo_investimento")
         TipoInvestimento tipoInvestimento,
-        @JsonProperty("qtde_pessoas_impactadas")
         Integer qtdePessoasImpactadas,
-        @JsonProperty("aporte_inicial")
         Double aporteInicial,
+        @NotNull(message = "Campo obrigatório")
         StatusISP status,
-        @JsonProperty("locais_impactados")
         List<String> locaisImpactados,
         List<AporteDTO> aportes,
-        @JsonProperty("organizacao_id")
+        @NotNull(message = "Campo obrigatório")
         Integer organizacaoId,
-        @JsonProperty("categoria_id")
         Integer categoria,
-        @JsonProperty("area_id")
         Integer area,
-        @JsonProperty("incentivo_id")
         Integer incentivo
 ) {
 }

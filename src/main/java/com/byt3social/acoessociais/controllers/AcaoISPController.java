@@ -3,6 +3,7 @@ package com.byt3social.acoessociais.controllers;
 import com.byt3social.acoessociais.dto.AcaoISPDTO;
 import com.byt3social.acoessociais.models.AcaoISP;
 import com.byt3social.acoessociais.services.AcaoISPService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,14 +31,14 @@ public class AcaoISPController {
     }
 
     @PostMapping("/acoes-isp")
-    public ResponseEntity cadastrarAcaoISP(@RequestBody AcaoISPDTO acaoISPDTO) {
-        acaoISPService.cadastrarAcaoISP(acaoISPDTO);
+    public ResponseEntity cadastrarAcaoISP(@Valid @RequestBody AcaoISPDTO acaoISPDTO) {
+        Integer id = acaoISPService.cadastrarAcaoISP(acaoISPDTO);
 
-        return new ResponseEntity(HttpStatus.CREATED);
+        return new ResponseEntity(id, HttpStatus.CREATED);
     }
 
     @PutMapping("/acoes-isp/{id}")
-    public ResponseEntity atualizarAcaoISP(@PathVariable("id") Integer acaoISPID, @RequestBody AcaoISPDTO acaoISPDTO) {
+    public ResponseEntity atualizarAcaoISP(@PathVariable("id") Integer acaoISPID, @Valid @RequestBody AcaoISPDTO acaoISPDTO) {
         acaoISPService.atualizarAcaoISP(acaoISPID, acaoISPDTO);
 
         return new ResponseEntity(HttpStatus.NO_CONTENT);

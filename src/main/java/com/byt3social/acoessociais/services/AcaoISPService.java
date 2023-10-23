@@ -6,6 +6,7 @@ import com.byt3social.acoessociais.models.*;
 import com.byt3social.acoessociais.repositories.*;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -28,7 +29,7 @@ public class AcaoISPService {
     private AporteRepository aporteRepository;
 
     public List<AcaoISP> consultarAcoesISP() {
-        return acaoISPRepository.findAll();
+        return acaoISPRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
     }
 
     public AcaoISP consultarAcaoISP(Integer acaoISPID) {
@@ -36,7 +37,7 @@ public class AcaoISPService {
     }
 
     @Transactional
-    public void cadastrarAcaoISP(AcaoISPDTO acaoISPDTO) {
+    public Integer cadastrarAcaoISP(AcaoISPDTO acaoISPDTO) {
         Categoria categoria = null;
         if(acaoISPDTO.categoria() != null) {
             categoria = categoriaRepository.getReferenceById(acaoISPDTO.categoria());
@@ -67,6 +68,8 @@ public class AcaoISPService {
 
             acaoISP.adicionarLocaisImpactados(locaisImpactados);
         }
+
+        return acaoISP.getId();
     }
 
     @Transactional

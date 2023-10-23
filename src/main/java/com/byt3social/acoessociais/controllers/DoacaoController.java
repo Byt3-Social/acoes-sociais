@@ -2,23 +2,41 @@ package com.byt3social.acoessociais.controllers;
 
 import com.byt3social.acoessociais.dto.DoacaoDTO;
 import com.byt3social.acoessociais.dto.PagseguroTransacaoDTO;
+import com.byt3social.acoessociais.models.Doacao;
 import com.byt3social.acoessociais.services.DoacaoService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
 
 @RestController
 public class DoacaoController {
     @Autowired
     private DoacaoService doacaoService;
 
-    @CrossOrigin
     @PostMapping("/doacoes")
-    public ResponseEntity realizarDoacao(@RequestBody DoacaoDTO doacaoDTO) {
-        doacaoService.realizarDoacao(doacaoDTO);
+    public ResponseEntity realizarDoacao(@RequestHeader("B3Social-Colaborador") String colaboradorId, @Valid @RequestBody DoacaoDTO doacaoDTO) {
+        Doacao doacao = doacaoService.realizarDoacao(doacaoDTO, Integer.valueOf(colaboradorId));
 
-        return new ResponseEntity(HttpStatus.CREATED);
+        return new ResponseEntity(doacao, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/doacoes")
+    public ResponseEntity consultarDoacoes(@RequestHeader("B3Social-Colaborador") String colaboradorId) {
+        List<Map> doacoes = doacaoService.consultarDoacoes(Integer.valueOf(colaboradorId));
+
+        return new ResponseEntity(doacoes, HttpStatus.OK);
+    }
+
+    @GetMapping("/doacoes/{id}")
+    public ResponseEntity consultarDoacao(@PathVariable("id") Integer doacaoID) {
+        Doacao doacao = doacaoService.consultarDoacao(doacaoID);
+
+        return new ResponseEntity(doacao, HttpStatus.OK);
     }
 
     @CrossOrigin
@@ -34,5 +52,12 @@ public class DoacaoController {
         doacaoService.cancelarDoacao(doacaoID);
 
         return new ResponseEntity(HttpStatus.NO_CONTENT);
+    }
+
+    @GetMapping("/doacoes/{id}/estatisticas")
+    public ResponseEntity estatisticas(@PathVariable("id") Integer acaoID) {
+        Map<String, Object> estatisticas = doacaoService.gerarEstatisticas(acaoID);
+
+        return new ResponseEntity<>(estatisticas, HttpStatus.OK);
     }
 }
