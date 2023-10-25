@@ -2,6 +2,8 @@ package com.byt3social.acoessociais.services;
 
 import com.byt3social.acoessociais.dto.AcaoVoluntariadoDTO;
 import com.byt3social.acoessociais.dto.OpcaoContribuicaoDTO;
+import com.byt3social.acoessociais.dto.PDSignProcessoDTO;
+import com.byt3social.acoessociais.dto.PDSignProcessosDTO;
 import com.byt3social.acoessociais.exceptions.FileTypeNotSupportedException;
 import com.byt3social.acoessociais.models.AcaoVoluntariado;
 import com.byt3social.acoessociais.models.Inscricao;
@@ -34,6 +36,8 @@ public class AcaoVoluntariadoService {
     private String nomeBucketPrincipal;
     @Value("${com.byt3social.aws.region}")
     private String awsRegion;
+    @Autowired
+    private PDSignService pdSignService;
 
     @Transactional
     public Integer cadastrarAcaoVoluntariado(AcaoVoluntariadoDTO acaoVoluntariadoDTO) {
@@ -167,5 +171,22 @@ public class AcaoVoluntariadoService {
         acoes.put("doacao", acoesDoacao);
 
         return acoes;
+    }
+
+    public List<PDSignProcessoDTO> consultarProcessoPDSign(Integer acaoId) {
+        AcaoVoluntariado acaoVoluntariado = acaoVoluntariadoRepository.findById(acaoId).get();
+
+        if(acaoVoluntariado.getContrato() == null) {
+            return List.of();
+        }
+
+        PDSignProcessosDTO pdSignProcessosDTO = pdSignService.buscarProcessosPDSign();
+
+        List<PDSignProcessoDTO> pdSignProcessoDTOList = new ArrayList<>();
+
+        PDSignProcessoDTO pdSignProcesso = pdSignProcessosDTO.processes().stream().filter(pdSignProcessoDTO -> pdSignProcessoDTO.id().equals(acaoVoluntariado.getContrato().getPdsignProcessoId())).findFirst().get();
+        pdSignProcessoDTOList.add(pdSignProcesso);
+
+        return pdSignProcessoDTOList;
     }
 }

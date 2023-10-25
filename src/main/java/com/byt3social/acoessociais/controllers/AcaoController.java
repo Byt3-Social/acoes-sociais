@@ -17,8 +17,8 @@ public class AcaoController {
     private AcaoService acaoService;
 
     @PostMapping("/acoes/{id}/arquivos")
-    public ResponseEntity salvarArquivoAcao(@PathVariable("id") Integer acaoID, @RequestParam("acao") String tipoAcao, @RequestParam("upload") String upload, @RequestBody MultipartFile arquivo) {
-        Object arquivoEnviado = acaoService.salvarArquivo(acaoID, tipoAcao, upload, arquivo);
+    public ResponseEntity salvarArquivoAcao(@RequestHeader("Authorization") String token, @PathVariable("id") Integer acaoID, @RequestParam("acao") String tipoAcao, @RequestParam("upload") String upload, @RequestBody MultipartFile arquivo) {
+        Object arquivoEnviado = acaoService.salvarArquivo(acaoID, tipoAcao, upload, arquivo, token);
 
         return new ResponseEntity(arquivoEnviado, HttpStatus.CREATED);
     }

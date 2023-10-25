@@ -1,9 +1,7 @@
 package com.byt3social.acoessociais.controllers;
 
 import com.byt3social.acoessociais.services.AcaoService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,8 +10,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
 
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -32,9 +31,9 @@ public class AcaoControllerTest {
         String upload = "documento";
         MockMultipartFile arquivo = new MockMultipartFile("file", "filename.txt", "text/plain", "conteúdo do arquivo".getBytes());
 
-        ResponseEntity response = acaoController.salvarArquivoAcao(acaoID, tipoAcao, upload, arquivo);
+        ResponseEntity response = acaoController.salvarArquivoAcao(null, acaoID, tipoAcao, upload, arquivo);
 
-        verify(acaoService).salvarArquivo(acaoID, tipoAcao, upload, arquivo);
+        verify(acaoService).salvarArquivo(acaoID, tipoAcao, upload, arquivo, null);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
     /*@Test

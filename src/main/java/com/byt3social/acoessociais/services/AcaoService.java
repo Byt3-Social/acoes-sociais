@@ -1,5 +1,6 @@
 package com.byt3social.acoessociais.services;
 
+import com.byt3social.acoessociais.dto.OrganizacaoDTO;
 import com.byt3social.acoessociais.exceptions.FileTypeNotSupportedException;
 import com.byt3social.acoessociais.exceptions.InvalidOperationTypeException;
 import com.byt3social.acoessociais.models.*;
@@ -10,14 +11,24 @@ import com.byt3social.acoessociais.repositories.ContratoRepository;
 import jakarta.transaction.Transactional;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class AcaoService {
+    @Value("${com.byt3social.app.prospeccao.buscar-organizacao-url}")
+    private String buscarOrganizacaoUrl;
     @Autowired
     private AmazonS3Service amazonS3Service;
     @Autowired
@@ -28,9 +39,11 @@ public class AcaoService {
     private ArquivoRepository arquivoRepository;
     @Autowired
     private ContratoRepository contratoRepository;
+    @Autowired
+    private PDSignService pdSignService;
 
     @Transactional
-    public Object salvarArquivo(Integer acaoID, String tipoAcao, String upload, MultipartFile arquivo) {
+    public Object salvarArquivo(Integer acaoID, String tipoAcao, String upload, MultipartFile arquivo, String token) {
         Acao acao = null;
 
         if(tipoAcao.equals("isp")) {
@@ -46,7 +59,7 @@ public class AcaoService {
                 return salvarDocumento(arquivo, acao);
             }
             case "contrato" -> {
-                return salvarContrato(arquivo, acao);
+                return salvarContrato(arquivo, acao, token);
             }
             default -> throw new InvalidOperationTypeException();
         }
@@ -79,20 +92,25 @@ public class AcaoService {
     }
 
     @Transactional
-    public Contrato salvarContrato(MultipartFile contrato, Acao acao) {
+    public Contrato salvarContrato(MultipartFile contrato, Acao acao, String token) {
         if(!FilenameUtils.isExtension(contrato.getOriginalFilename(), "pdf")) {
             throw new FileTypeNotSupportedException();
         }
 
         String nomeContrato;
         String pastaContrato;
+        Integer organizacaoId;
 
         if(acao instanceof AcaoVoluntariado) {
             nomeContrato = ((AcaoVoluntariado) acao).getNomeAcao() + " - Contrato." + FilenameUtils.getExtension(contrato.getOriginalFilename());
             pastaContrato = "acoes/voluntariado/" + ((AcaoVoluntariado) acao).getId() + "/contratos/";
+
+            organizacaoId = ((AcaoVoluntariado) acao).getOrganizacaoId();
         } else {
             nomeContrato = ((AcaoISP) acao).getNomeAcao() + " - Contrato." + FilenameUtils.getExtension(contrato.getOriginalFilename());
             pastaContrato = "acoes/isp/" + ((AcaoISP) acao).getId() + "/contratos/";
+
+            organizacaoId = ((AcaoISP) acao).getOrganizacaoId();
         }
 
         String caminhoContrato = pastaContrato + nomeContrato;
@@ -103,7 +121,12 @@ public class AcaoService {
 
         amazonS3Service.armazenarArquivo(contrato, caminhoContrato);
 
-        Contrato novoContrato = new Contrato(caminhoContrato);
+        OrganizacaoDTO organizacaoDTO = buscarOrganizacao(organizacaoId, token);
+
+        String processoPdSignId = pdSignService.criarProcesso(organizacaoDTO.responsavel());
+        String documentoPdSignId = pdSignService.criarDocumento(processoPdSignId, "Contrato");
+
+        Contrato novoContrato = new Contrato(caminhoContrato, processoPdSignId, documentoPdSignId);
         contratoRepository.save(novoContrato);
 
         if(acao instanceof AcaoVoluntariado) {
@@ -112,7 +135,24 @@ public class AcaoService {
             ((AcaoISP) acao).incluirContrato(novoContrato);
         }
 
+        pdSignService.uploadDocumento(contrato, novoContrato.getPdsignProcessoId(), novoContrato.getPdsignDocumentoId());
+
+        ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+        executorService.schedule(new PDSign(pdSignService, novoContrato, executorService), 5, TimeUnit.SECONDS);
+
         return novoContrato;
+    }
+
+    private OrganizacaoDTO buscarOrganizacao(Integer organizacaoId, String token) {
+        RestTemplate restTemplateOrganizacao = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token.replace("Bearer ", ""));
+        headers.set("B3Social-User", "colaborador");
+
+        HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+
+        return (restTemplateOrganizacao.exchange(buscarOrganizacaoUrl + organizacaoId, HttpMethod.GET, requestEntity, OrganizacaoDTO.class)).getBody();
     }
 
     public String recuperarArquivo(Integer arquivoID, String download) {
@@ -176,5 +216,22 @@ public class AcaoService {
         acoes.addAll(acoesISP);
 
         return acoes;
+    }
+
+    public class PDSign implements Runnable {
+        private Contrato contrato;
+        private PDSignService pdSignService;
+        private ScheduledExecutorService executorService;
+
+        public PDSign(PDSignService pdSignService, Contrato contrato, ScheduledExecutorService executorService) {
+            this.contrato = contrato;
+            this.pdSignService = pdSignService;
+            this.executorService = executorService;
+        }
+
+        @Override
+        public void run() {
+            pdSignService.updateProcesso(contrato.getPdsignProcessoId());
+        }
     }
 }

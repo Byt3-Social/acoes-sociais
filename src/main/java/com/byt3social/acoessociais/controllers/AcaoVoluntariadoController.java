@@ -2,6 +2,7 @@ package com.byt3social.acoessociais.controllers;
 
 import com.byt3social.acoessociais.dto.AcaoVoluntariadoDTO;
 import com.byt3social.acoessociais.dto.OpcaoContribuicaoDTO;
+import com.byt3social.acoessociais.dto.PDSignProcessoDTO;
 import com.byt3social.acoessociais.models.AcaoVoluntariado;
 import com.byt3social.acoessociais.models.Inscricao;
 import com.byt3social.acoessociais.services.AcaoVoluntariadoService;
@@ -96,5 +97,12 @@ public class AcaoVoluntariadoController {
         Map<String, List<AcaoVoluntariado>> acoes = acaoVoluntariadoService.buscarAcoesParaDivulgacao();
 
         return new ResponseEntity(acoes, HttpStatus.OK);
+    }
+
+    @GetMapping("/acao-voluntariado/{id}/pdsign")
+    public ResponseEntity consultarProcessoPDSign(@PathVariable("id") Integer acaoId) {
+        List<PDSignProcessoDTO> pdSignProcessoDTO = acaoVoluntariadoService.consultarProcessoPDSign(acaoId);
+
+        return new ResponseEntity<>(pdSignProcessoDTO, HttpStatus.OK);
     }
 }

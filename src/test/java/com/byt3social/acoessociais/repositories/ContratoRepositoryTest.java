@@ -24,7 +24,7 @@ public class ContratoRepositoryTest {
     @Test
     public void testSalvarContrato() {
 
-        Contrato contrato = new Contrato("Sample Contract");
+        Contrato contrato = new Contrato("Sample Contract", null, null);
 
         Contrato savedContrato = contratoRepository.save(contrato);
         Optional<Contrato> retrievedContrato = contratoRepository.findById(savedContrato.getId());
@@ -37,7 +37,7 @@ public class ContratoRepositoryTest {
     @Test
     public void testBuscarContratoPeloId() {
 
-        Contrato contrato = new Contrato("Sample Contract");
+        Contrato contrato = new Contrato("Sample Contract", null, null);
 
         Contrato savedContrato = contratoRepository.save(contrato);
         Optional<Contrato> retrievedContrato = contratoRepository.findById(savedContrato.getId());
@@ -48,8 +48,8 @@ public class ContratoRepositoryTest {
     @Test
     public void testListarTodosContratos() {
 
-        Contrato contrato1 = new Contrato("Contract 1");
-        Contrato contrato2 = new Contrato("Contract 2");
+        Contrato contrato1 = new Contrato("Contract 1", null, null);
+        Contrato contrato2 = new Contrato("Contract 2", null, null);
 
         contratoRepository.save(contrato1);
         contratoRepository.save(contrato2);

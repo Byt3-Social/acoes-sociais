@@ -1,6 +1,7 @@
 package com.byt3social.acoessociais.controllers;
 
 import com.byt3social.acoessociais.dto.AcaoISPDTO;
+import com.byt3social.acoessociais.dto.PDSignProcessoDTO;
 import com.byt3social.acoessociais.models.AcaoISP;
 import com.byt3social.acoessociais.services.AcaoISPService;
 import jakarta.validation.Valid;
@@ -49,5 +50,12 @@ public class AcaoISPController {
         acaoISPService.excluirAcaoISP(acaoISPID);
 
         return new ResponseEntity(HttpStatus.OK);
+    }
+
+    @GetMapping("/acao-isp/{id}/pdsign")
+    public ResponseEntity consultarProcessoPDSign(@PathVariable("id") Integer acaoId) {
+        List<PDSignProcessoDTO> pdSignProcessoDTO = acaoISPService.consultarProcessoPDSign(acaoId);
+
+        return new ResponseEntity<>(pdSignProcessoDTO, HttpStatus.OK);
     }
 }

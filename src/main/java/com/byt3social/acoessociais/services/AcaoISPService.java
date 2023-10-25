@@ -2,6 +2,8 @@ package com.byt3social.acoessociais.services;
 
 import com.byt3social.acoessociais.dto.AcaoISPDTO;
 import com.byt3social.acoessociais.dto.AporteDTO;
+import com.byt3social.acoessociais.dto.PDSignProcessoDTO;
+import com.byt3social.acoessociais.dto.PDSignProcessosDTO;
 import com.byt3social.acoessociais.models.*;
 import com.byt3social.acoessociais.repositories.*;
 import jakarta.transaction.Transactional;
@@ -27,6 +29,8 @@ public class AcaoISPService {
     private LocalImpactadoRepository localImpactadoRepository;
     @Autowired
     private AporteRepository aporteRepository;
+    @Autowired
+    private PDSignService pdSignService;
 
     public List<AcaoISP> consultarAcoesISP() {
         return acaoISPRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -158,5 +162,22 @@ public class AcaoISPService {
         localImpactadoRepository.deleteAll(acaoISP.getLocaisImpactados());
         aporteRepository.deleteAll(acaoISP.getAportes());
         acaoISPRepository.deleteById(acaoISPID);
+    }
+
+    public List<PDSignProcessoDTO> consultarProcessoPDSign(Integer acaoId) {
+        AcaoISP acaoISP = acaoISPRepository.findById(acaoId).get();
+
+        if(acaoISP.getContrato() == null) {
+            return List.of();
+        }
+
+        PDSignProcessosDTO pdSignProcessosDTO = pdSignService.buscarProcessosPDSign();
+
+        List<PDSignProcessoDTO> pdSignProcessoDTOList = new ArrayList<>();
+
+        PDSignProcessoDTO pdSignProcesso = pdSignProcessosDTO.processes().stream().filter(pdSignProcessoDTO -> pdSignProcessoDTO.id().equals(acaoISP.getContrato().getPdsignProcessoId())).findFirst().get();
+        pdSignProcessoDTOList.add(pdSignProcesso);
+
+        return pdSignProcessoDTOList;
     }
 }

@@ -17,7 +17,7 @@ public interface DoacaoRepository extends JpaRepository<Doacao, Integer> {
     Map cancelado(AcaoVoluntariado acaoVoluntariado);
     @Query(value = "select count(d.id) as total, sum(d.valor) as valor, avg(d.valor) as media from Doacao as d")
     Map doacoes(AcaoVoluntariado acaoVoluntariado);
-    @Query(value = "select d.metodoDoacao as metodo, count(d.id) as total, sum(d.valor) as valor, avg(d.valor) as media from Doacao as d where d.acaoVoluntariado = ?1 group by d.metodoDoacao")
+    @Query(value = "select d.metodoDoacao as metodo, count(d.id) as total, sum(d.valor) as valor, avg(d.valor) as media from Doacao as d where d.acaoVoluntariado = ?1 and d.statusDoacao = 'PAID' group by d.metodoDoacao")
     List<Map> doacoesPorMetodoDoacao(AcaoVoluntariado acaoVoluntariado);
     @Query(value = "select cast(d.createdAt as date) as x, sum(d.valor) as y from Doacao as d where d.acaoVoluntariado = ?1 group by cast(d.createdAt as date) order by cast(d.createdAt as date) asc")
     List<Map> doacoesPorDia(AcaoVoluntariado acaoVoluntariado);

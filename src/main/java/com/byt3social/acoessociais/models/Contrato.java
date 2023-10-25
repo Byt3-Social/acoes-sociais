@@ -22,6 +22,10 @@ public class Contrato {
     @Column(name = "caminho_s3")
     private String caminhoS3;
     private String assinatura;
+    @Column(name = "pdsign_processo_id")
+    private String pdsignProcessoId;
+    @Column(name = "pdsign_documento_id")
+    private String pdsignDocumentoId;
     @CreationTimestamp
     @Column(name = "created_at")
     private Date createdAt;
@@ -35,7 +39,9 @@ public class Contrato {
     @JsonBackReference
     private AcaoISP acaoISP;
 
-    public Contrato(String caminhoContrato) {
+    public Contrato(String caminhoContrato, String processoPdSignId, String documentoPdSignId) {
         this.caminhoS3 = caminhoContrato;
+        this.pdsignProcessoId = processoPdSignId;
+        this.pdsignDocumentoId = documentoPdSignId;
     }
 }
