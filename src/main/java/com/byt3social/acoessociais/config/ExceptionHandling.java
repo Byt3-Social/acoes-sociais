@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.byt3social.acoessociais.dto.FieldErrorDTO;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @RestControllerAdvice
 public class ExceptionHandling {
@@ -17,5 +18,10 @@ public class ExceptionHandling {
         List<FieldError> errors = e.getFieldErrors();
 
         return new ResponseEntity(errors.stream().map(FieldErrorDTO::new).toList(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity noSuchElementException() {
+        return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 }

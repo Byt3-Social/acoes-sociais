@@ -1,16 +1,13 @@
-package com.byt3social.acoessociais.models;
+    package com.byt3social.acoessociais.models;
 
 import com.byt3social.acoessociais.dto.AcaoISPDTO;
 import com.byt3social.acoessociais.enums.Abrangencia;
 import com.byt3social.acoessociais.enums.StatusISP;
 import com.byt3social.acoessociais.enums.TipoInvestimento;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -22,6 +19,7 @@ import java.util.List;
 @Entity(name = "AcaoISP")
 @EqualsAndHashCode(of = "id")
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
 public class AcaoISP extends Acao {
@@ -29,33 +27,26 @@ public class AcaoISP extends Acao {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     @Column(name = "nome_acao")
-    @JsonProperty("nome_acao")
     private String nomeAcao;
     private String descricao;
     @Enumerated(value = EnumType.STRING)
     private Abrangencia abrangencia;
     @Column(name = "tipo_investimento")
-    @JsonProperty("tipo_investimento")
     @Enumerated(value = EnumType.STRING)
     private TipoInvestimento tipoInvestimento;
     @Column(name = "qtde_pessoas_impactadas")
-    @JsonProperty("qtde_pessoas_impactadas")
     private Integer qtdePessoasImpactadas;
     @Column(name = "aporte_inicial")
-    @JsonProperty("aporte_inicial")
     private Double aporteInicial;
     @Enumerated(value = EnumType.STRING)
     private StatusISP status;
     @Column(name = "organizacao_id")
-    @JsonProperty("organizacao_id")
     private Integer organizacaoId;
     @CreationTimestamp
     @Column(name = "created_at")
-    @JsonProperty("created_at")
     private Date createdAt;
     @UpdateTimestamp
     @Column(name = "updated_at")
-    @JsonProperty("updated_at")
     private Date updatedAt;
     @ManyToOne
     @JoinColumn(name = "categoria_id")
@@ -69,19 +60,20 @@ public class AcaoISP extends Acao {
     @JoinColumn(name = "incentivo_id")
     @JsonManagedReference
     private Incentivo incentivo;
-    @OneToOne
+    @OneToOne(orphanRemoval = true)
     @JoinColumn(name = "contrato_id")
     @JsonManagedReference
     private Contrato contrato;
     @OneToMany(mappedBy = "acaoISP")
     @JsonManagedReference
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private List<LocalImpactado> locaisImpactados = new ArrayList<>();
     @OneToMany(mappedBy = "acaoISP")
     @JsonManagedReference
     private List<Aporte> aportes = new ArrayList<>();
     @OneToMany(mappedBy = "acaoISP")
     @JsonManagedReference
-    private List<Arquivo> arquivos;
+    private List<Arquivo> arquivos = new ArrayList<>();
 
     public AcaoISP(AcaoISPDTO acaoISPDTO, Categoria categoria, Area area, Incentivo incentivo) {
         this.nomeAcao = acaoISPDTO.nomeAcao();
@@ -102,34 +94,14 @@ public class AcaoISP extends Acao {
     }
 
     public void atualizar(AcaoISPDTO acaoISPDTO, Categoria categoria, Incentivo incentivo, Area area) {
-        if(acaoISPDTO.nomeAcao() != null) {
-            this.nomeAcao = acaoISPDTO.nomeAcao();
-        }
-
-        if(acaoISPDTO.descricao() != null) {
-            this.descricao = acaoISPDTO.descricao();
-        }
-
-        if(acaoISPDTO.abrangencia() != null) {
-            this.abrangencia = acaoISPDTO.abrangencia();
-        }
-
-        if(acaoISPDTO.tipoInvestimento() != null) {
-            this.tipoInvestimento = acaoISPDTO.tipoInvestimento();
-        }
-
-        if(acaoISPDTO.qtdePessoasImpactadas() != null) {
-            this.qtdePessoasImpactadas = acaoISPDTO.qtdePessoasImpactadas();
-        }
-
-        if(acaoISPDTO.aporteInicial() != null) {
-            this.aporteInicial = acaoISPDTO.aporteInicial();
-        }
-
-        if(acaoISPDTO.status() != null) {
-            this.status = acaoISPDTO.status();
-        }
-
+        this.nomeAcao = acaoISPDTO.nomeAcao();
+        this.descricao = acaoISPDTO.descricao();
+        this.abrangencia = acaoISPDTO.abrangencia();
+        this.tipoInvestimento = acaoISPDTO.tipoInvestimento();
+        this.qtdePessoasImpactadas = acaoISPDTO.qtdePessoasImpactadas();
+        this.aporteInicial = acaoISPDTO.aporteInicial();
+        this.status = acaoISPDTO.status();
+        this.organizacaoId = acaoISPDTO.organizacaoId();
         this.categoria = categoria;
         this.incentivo = incentivo;
         this.area = area;
@@ -137,5 +109,9 @@ public class AcaoISP extends Acao {
 
     public void incluirContrato(Contrato novoContrato) {
         this.contrato = novoContrato;
+    }
+
+    public void excluirContrato() {
+        this.contrato = null;
     }
 }

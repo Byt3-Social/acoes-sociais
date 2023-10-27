@@ -12,14 +12,18 @@ import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.ByteArrayOutputStream;
-import java.util.Base64;
+import java.util.*;
 
 @Service
 public class InscricaoService {
+    @Value("${com.byt3social.colaboradores.url}")
+    private String colaboradoresUrl;
     @Autowired
     private AcaoVoluntariadoRepository acaoVoluntariadoRepository;
     @Autowired
@@ -27,15 +31,15 @@ public class InscricaoService {
     @Autowired
     private EmailService emailService;
 
-    public void realizarInscricao(InscricaoDTO inscricaoDTO) {
+    public void realizarInscricao(InscricaoDTO inscricaoDTO, Integer colaboradorId) {
         AcaoVoluntariado acaoVoluntariado = acaoVoluntariadoRepository.findById(inscricaoDTO.acaoId()).get();
-        Inscricao inscricao = new Inscricao(inscricaoDTO.usuarioId(), acaoVoluntariado);
+        Inscricao inscricao = new Inscricao(colaboradorId, acaoVoluntariado);
 
         inscricao = inscricaoRepository.save(inscricao);
 
         String QRCode = gerarQRCode(inscricao.getId());
         RestTemplate restTemplate = new RestTemplate();
-        ParticipanteDTO inscrito = restTemplate.getForObject("http://localhost:8081/users/" + inscricao.getParticipanteId(), ParticipanteDTO.class);
+        ParticipanteDTO inscrito = restTemplate.getForObject(colaboradoresUrl + inscricao.getParticipanteId(), ParticipanteDTO.class);
 
         emailService.notificarInscricaoConfirmada(inscricao, inscrito, QRCode);
     }
@@ -60,5 +64,27 @@ public class InscricaoService {
         } catch(Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public List<Map> consultarInscricoes(Integer colaboradorId) {
+        List<Map> inscricoes = inscricaoRepository.findByParticipanteId(colaboradorId, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        List<Map> inscricoesColaborador = new ArrayList<>();
+
+        for (Map<String, Object> inscricao : inscricoes) {
+            Map<String, Object> inscricaoColaborador = new HashMap<>();
+            inscricaoColaborador.putAll(inscricao);
+            inscricaoColaborador.put("qrcode", gerarQRCode(Integer.valueOf(inscricao.get("id").toString())));
+
+            inscricoesColaborador.add(inscricaoColaborador);
+        }
+
+        return inscricoesColaborador;
+    }
+
+    public List<Integer> consultarInscricoesPorAcaoId(Integer colaboradorId) {
+        List<Integer> inscricoes = inscricaoRepository.buscarInscricoesPorAcaoId(colaboradorId);
+
+        return inscricoes;
     }
 }

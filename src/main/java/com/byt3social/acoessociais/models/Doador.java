@@ -1,13 +1,10 @@
 package com.byt3social.acoessociais.models;
 
 import com.byt3social.acoessociais.dto.DoacaoDTO;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.Date;
 import java.util.List;
@@ -16,6 +13,7 @@ import java.util.List;
 @Entity(name = "Doador")
 @EqualsAndHashCode(of = "id")
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
 public class Doador {
@@ -33,28 +31,20 @@ public class Doador {
     @JsonProperty("usuario_id")
     private Integer usuarioId;
     @OneToMany(mappedBy = "doador")
-    @JsonManagedReference
+    @JsonBackReference
     private List<Doacao> doacaos;
 
-    public Doador(DoacaoDTO doacaoDTO) {
+    public Doador(DoacaoDTO doacaoDTO, Integer colaboradorId) {
         this.nome = doacaoDTO.nome();
         this.email = doacaoDTO.email();
         this.telefone = doacaoDTO.telefone();
         this.cpf = doacaoDTO.cpf();
-        this.usuarioId = doacaoDTO.usuarioId();
+        this.usuarioId = colaboradorId;
     }
 
     public void atualizar(DoacaoDTO doacaoDTO) {
-        if(doacaoDTO.nome() != null) {
-            this.nome = doacaoDTO.nome();
-        }
-
-        if(doacaoDTO.email() != null) {
-            this.email = doacaoDTO.email();
-        }
-
-        if(doacaoDTO.telefone() != null) {
-            this.telefone = doacaoDTO.telefone();
-        }
+        this.nome = doacaoDTO.nome();
+        this.email = doacaoDTO.email();
+        this.telefone = doacaoDTO.telefone();
     }
 }
