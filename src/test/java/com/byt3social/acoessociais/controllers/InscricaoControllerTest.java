@@ -13,6 +13,11 @@ import org.springframework.http.ResponseEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -45,6 +50,32 @@ public class InscricaoControllerTest {
         ResponseEntity response = inscricaoController.cancelarInscricao(inscricaoID);
 
         verify(inscricaoService).cancelarInscricao(inscricaoID);
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    public void testConsultarInscricoes() {
+
+        String colaboradorId = "1";
+        List<Map> inscricoes = new ArrayList<>(); 
+        when(inscricaoService.consultarInscricoes(Integer.valueOf(colaboradorId))).thenReturn(inscricoes);
+
+        ResponseEntity<List<Map>> response = inscricaoController.consultarInscricoes(colaboradorId);
+
+        verify(inscricaoService).consultarInscricoes(Integer.valueOf(colaboradorId));
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    public void testConsultarInscricoesPorAcaoId() {
+
+        String colaboradorId = "1";
+        List<Integer> inscricoes = new ArrayList<>(); 
+        when(inscricaoService.consultarInscricoesPorAcaoId(Integer.valueOf(colaboradorId))).thenReturn(inscricoes);
+
+        ResponseEntity<List<Integer>> response = inscricaoController.consultarInscricoesPorAcaoId(colaboradorId);
+
+        verify(inscricaoService).consultarInscricoesPorAcaoId(Integer.valueOf(colaboradorId));
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

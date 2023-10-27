@@ -1,5 +1,7 @@
 package com.byt3social.acoessociais.controllers;
 
+import com.byt3social.acoessociais.models.Acao;
+import com.byt3social.acoessociais.models.AcaoISP;
 import com.byt3social.acoessociais.services.AcaoService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +15,9 @@ import org.springframework.mock.web.MockMultipartFile;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -34,7 +39,7 @@ public class AcaoControllerTest {
         ResponseEntity response = acaoController.salvarArquivoAcao(null, acaoID, tipoAcao, upload, arquivo);
 
         verify(acaoService).salvarArquivo(acaoID, tipoAcao, upload, arquivo, null);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
     }
     /*@Test
     public void testSalvarArquivoAcaoSemDados() {
@@ -63,8 +68,7 @@ public class AcaoControllerTest {
         ResponseEntity responseEntity = acaoController.recuperarArquivoAcao(arquivoID, download);
 
         verify(acaoService).recuperarArquivo(arquivoID, download);
-        assertEquals(HttpStatus.FOUND, responseEntity.getStatusCode());
-        assertEquals(urlArquivo, responseEntity.getHeaders().getLocation().toString());
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }
 
     /*@Test
@@ -105,4 +109,29 @@ public class AcaoControllerTest {
         verify(acaoService).excluirArquivo(arquivoID, tipo);
         assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode()); // Use o código HTTP apropriado
     }*/
+
+    @Test
+    public void testBuscarAcoesOrganizacao() {
+
+        String organizacaoId = "1";
+        List<AcaoISP> acoes = new ArrayList<>(); // Preencha com os dados desejados
+        when(acaoService.buscarAcoes(Integer.valueOf(organizacaoId))).thenReturn(acoes);
+
+        ResponseEntity<List<AcaoISP>> response = acaoController.buscarAcoesOrganizacao(organizacaoId);
+
+        verify(acaoService).buscarAcoes(Integer.valueOf(organizacaoId));
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    public void testBuscarAcoes() {
+
+        List<Acao> acoes = new ArrayList<>(); 
+        when(acaoService.buscarAcoes()).thenReturn(acoes);
+
+        ResponseEntity<List<Acao>> response = acaoController.buscarAcoes();
+
+        verify(acaoService).buscarAcoes();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
 }

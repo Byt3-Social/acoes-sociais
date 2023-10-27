@@ -89,7 +89,6 @@ public class AcaoISPControllerTest {
     @Test
     public void testCadastrarAcaoISP() {
         AcaoISPDTO acaoISPDTO = createAcaoISPDTO();
-        doNothing().when(acaoISPService).cadastrarAcaoISP(acaoISPDTO);
 
         ResponseEntity response = acaoISPController.cadastrarAcaoISP(acaoISPDTO);
 

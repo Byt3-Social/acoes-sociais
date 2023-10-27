@@ -15,6 +15,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -36,6 +37,19 @@ public class InteresseControllerTest {
 
         verify(interesseService).manisfestarInteresse(interesseDTO, 1);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+    }
+    
+    @Test
+    public void testConsultarInteresses() {
+        
+        String colaboradorId = "1";
+        List<Integer> interesses = List.of(1, 2, 3); // Preencha com os dados desejados
+        when(interesseService.consultarInteresses(Integer.valueOf(colaboradorId))).thenReturn(interesses);
+
+        ResponseEntity<List<Integer>> response = interesseController.consultarInteresses(colaboradorId);
+
+        verify(interesseService).consultarInteresses(Integer.valueOf(colaboradorId));
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }
 

@@ -49,14 +49,19 @@ public class CategoriaRepositoryTest {
     @Test
     public void testListarTodasCategorias() {
 
+        List<Categoria> allCategorias = categoriaRepository.findAll();
+
         Categoria categoria1 = new Categoria("Category 1");
         Categoria categoria2 = new Categoria("Category 2");
 
         categoriaRepository.save(categoria1);
         categoriaRepository.save(categoria2);
-        List<Categoria> allCategorias = categoriaRepository.findAll();
+        allCategorias.add(categoria1);
+        allCategorias.add(categoria2);
+
+        List<Categoria> allCategoriasBD = categoriaRepository.findAll();
 
         assertNotNull(allCategorias);
-        assertEquals(2, allCategorias.size());
+        assertEquals(allCategorias.size(), allCategoriasBD.size());
     }
 }

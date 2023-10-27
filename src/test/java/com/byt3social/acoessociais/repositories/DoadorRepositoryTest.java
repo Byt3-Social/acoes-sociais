@@ -1,5 +1,6 @@
 package com.byt3social.acoessociais.repositories;
 
+import com.byt3social.acoessociais.dto.DoacaoDTO;
 import com.byt3social.acoessociais.models.Doador;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,20 @@ public class DoadorRepositoryTest {
     }
 
     @Test
+    public void testSalvarDoadorComDoacaoDTO() {
+
+        DoacaoDTO doacaoDTO = new DoacaoDTO("Junior", "junior@gmail.com", "067", "66999999999", "01425836971", null, null, null, "698", 88, 55.0);
+        Doador doador = new Doador(doacaoDTO, 6);
+        Doador savedDoador = doadorRepository.save(doador);
+        Optional<Doador> retrievedDoador = doadorRepository.findById(savedDoador.getId());
+
+        assertTrue(retrievedDoador.isPresent());
+        Doador retrieved = retrievedDoador.get();
+        assertEquals("Junior", retrieved.getNome());
+        assertEquals("01425836971", retrieved.getCpf());
+    }
+
+    @Test
     public void testAtualizarDoador() {
         Doador doador = new Doador();
         doador.setNome("John Doe");
@@ -54,6 +69,23 @@ public class DoadorRepositoryTest {
         Optional<Doador> retrievedDoador = doadorRepository.findById(savedDoador.getId());
         assertTrue(retrievedDoador.isPresent());
         assertEquals("John Doe", retrievedDoador.get().getNome());
+        assertEquals("new_email@example.com", retrievedDoador.get().getEmail());
+        assertEquals("555-987654", retrievedDoador.get().getTelefone());
+    }
+
+    @Test
+    public void testAtualizarDoadorComDTO() {
+        
+        DoacaoDTO doacaoDTO = new DoacaoDTO("Junior", "junior@gmail.com", "067", "66999999999", "01425836971", null, null, null, "698", 88, 55.0);
+        Doador doador = new Doador(doacaoDTO, 6);
+        Doador savedDoador = doadorRepository.save(doador);
+        savedDoador.setEmail("new_email@example.com");
+        savedDoador.setTelefone("555-987654");
+        doadorRepository.save(savedDoador);
+
+        Optional<Doador> retrievedDoador = doadorRepository.findById(savedDoador.getId());
+        assertTrue(retrievedDoador.isPresent());
+        assertEquals("Junior", retrievedDoador.get().getNome());
         assertEquals("new_email@example.com", retrievedDoador.get().getEmail());
         assertEquals("555-987654", retrievedDoador.get().getTelefone());
     }
