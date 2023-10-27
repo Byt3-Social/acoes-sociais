@@ -1,0 +1,1 @@
+ALTER TABLE aportes ADD COLUMN data DATE NULL;

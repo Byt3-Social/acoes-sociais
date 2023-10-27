@@ -1,0 +1,1 @@
+ALTER TABLE doacoes ADD COLUMN qrcode_text TEXT NULL;

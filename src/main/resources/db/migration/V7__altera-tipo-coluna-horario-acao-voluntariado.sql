@@ -1,0 +1,1 @@
+ALTER TABLE acoes_voluntariado MODIFY COLUMN horario TIME;
